@@ -1,0 +1,10 @@
+services:
+  psql-client:
+    image: postgres:16
+    container_name: psql-client
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+    volumes:
+      - ..:/workspace
+
