@@ -1,8 +1,10 @@
 """Tests for wdi.sql module."""
 
-import pytest
 from unittest.mock import Mock, patch
+
 import polars as pl
+import pytest
+
 from wdi import sql
 
 
@@ -90,7 +92,7 @@ def test_get_countries_with_region_filter(mock_connection: Mock) -> None:
     ]
     cursor_mock.description = [("country_code",), ("country_name",), ("region",), ("income_group",)]
 
-    result = sql.get_countries(region="North America", conn=mock_connection)
+    sql.get_countries(region="North America", conn=mock_connection)
 
     cursor_mock.execute.assert_called_once()
     sql_call = cursor_mock.execute.call_args[0][0]

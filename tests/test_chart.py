@@ -1,10 +1,12 @@
 """Tests for wdi.chart module."""
 
-import pytest
-import polars as pl
-import altair as alt
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
+import altair as alt
+import polars as pl
+import pytest
+
 from wdi import chart
 
 

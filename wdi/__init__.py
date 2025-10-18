@@ -7,8 +7,6 @@ interactive visualizations.
 
 __version__ = "0.1.0"
 
-from . import sql
-from . import df
-from . import chart
+from . import chart, df, sql
 
 __all__ = ["sql", "df", "chart"]

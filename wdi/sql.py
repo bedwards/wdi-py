@@ -1,9 +1,8 @@
 """SQL utilities for querying WDI PostgreSQL database."""
 
-from typing import Optional
+import polars as pl
 import psycopg2
 from psycopg2.extensions import connection as Connection
-import polars as pl
 
 
 def get_connection(
@@ -11,7 +10,7 @@ def get_connection(
     port: int = 5432,
     database: str = "db",
     user: str = "postgres",
-    password: Optional[str] = None,
+    password: str | None = None,
 ) -> Connection:
     """Create a connection to the WDI PostgreSQL database.
 
@@ -37,7 +36,7 @@ def get_connection(
     return psycopg2.connect(**conn_params)
 
 
-def query(sql: str, conn: Optional[Connection] = None) -> pl.DataFrame:
+def query(sql: str, conn: Connection | None = None) -> pl.DataFrame:
     """Execute a SQL query and return results as a Polars DataFrame.
 
     Args:
@@ -61,9 +60,9 @@ def query(sql: str, conn: Optional[Connection] = None) -> pl.DataFrame:
 
 
 def get_countries(
-    region: Optional[str] = None,
-    income_group: Optional[str] = None,
-    conn: Optional[Connection] = None,
+    region: str | None = None,
+    income_group: str | None = None,
+    conn: Connection | None = None,
 ) -> pl.DataFrame:
     """Get countries, optionally filtered by region or income group.
 
@@ -104,9 +103,9 @@ def get_countries(
 
 
 def get_indicators(
-    topic: Optional[str] = None,
-    search: Optional[str] = None,
-    conn: Optional[Connection] = None,
+    topic: str | None = None,
+    search: str | None = None,
+    conn: Connection | None = None,
 ) -> pl.DataFrame:
     """Get indicators, optionally filtered by topic or search term.
 
@@ -148,11 +147,11 @@ def get_indicators(
 
 def get_values(
     indicator_code: str,
-    year: Optional[int] = None,
-    country_code: Optional[str] = None,
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
-    conn: Optional[Connection] = None,
+    year: int | None = None,
+    country_code: str | None = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
+    conn: Connection | None = None,
 ) -> pl.DataFrame:
     """Get indicator values with flexible filtering.
 

@@ -1,8 +1,10 @@
 """Tests for wdi.df module."""
 
-import pytest
 from unittest.mock import patch
+
 import polars as pl
+import pytest
+
 from wdi import df
 
 

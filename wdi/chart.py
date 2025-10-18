@@ -1,6 +1,5 @@
 """Altair charting utilities for WDI data visualization."""
 
-from typing import Optional, Any
 import altair as alt
 import polars as pl
 
@@ -9,11 +8,11 @@ def scatter_with_filter(
     df: pl.DataFrame,
     x: str,
     y: str,
-    color: Optional[str] = None,
-    tooltip: Optional[list[str]] = None,
+    color: str | None = None,
+    tooltip: list[str] | None = None,
     title: str = "Scatter Plot",
-    x_title: Optional[str] = None,
-    y_title: Optional[str] = None,
+    x_title: str | None = None,
+    y_title: str | None = None,
     log_x: bool = False,
     log_y: bool = False,
     width: int = 400,
@@ -76,13 +75,13 @@ def bar_chart_filtered(
     df: pl.DataFrame,
     x: str,
     y: str,
-    color: Optional[str] = None,
+    color: str | None = None,
     title: str = "Bar Chart",
-    x_title: Optional[str] = None,
-    y_title: Optional[str] = None,
+    x_title: str | None = None,
+    y_title: str | None = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.Parameter] = None,
+    selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a bar chart that responds to a selection filter.
 
@@ -124,10 +123,10 @@ def histogram_filtered(
     column: str,
     bins: int = 30,
     title: str = "Histogram",
-    x_title: Optional[str] = None,
+    x_title: str | None = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.Parameter] = None,
+    selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a histogram that responds to a selection filter.
 
@@ -165,13 +164,13 @@ def line_chart_filtered(
     df: pl.DataFrame,
     x: str,
     y: str,
-    color: Optional[str] = None,
+    color: str | None = None,
     title: str = "Line Chart",
-    x_title: Optional[str] = None,
-    y_title: Optional[str] = None,
+    x_title: str | None = None,
+    y_title: str | None = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.Parameter] = None,
+    selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a line chart that responds to a selection filter.
 
@@ -212,7 +211,7 @@ def save_linked_charts(
     chart_left: alt.Chart,
     chart_right: alt.Chart,
     filename: str,
-    overall_title: Optional[str] = None,
+    overall_title: str | None = None,
 ) -> None:
     """Save two horizontally-aligned charts to an HTML file.
 
@@ -237,7 +236,7 @@ def map_chart_filtered(
     title: str = "World Map",
     width: int = 600,
     height: int = 400,
-    selection: Optional[alt.Parameter] = None,
+    selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a choropleth map that responds to a selection filter.
 

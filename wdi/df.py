@@ -1,15 +1,15 @@
 """Polars DataFrame utilities for WDI data analysis."""
 
-from typing import Optional
 import polars as pl
+
 from . import sql
 
 
 def get_indicator_data(
     indicator_code: str,
-    year: Optional[int] = None,
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
+    year: int | None = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
     include_region: bool = False,
     include_income_group: bool = False,
 ) -> pl.DataFrame:
@@ -102,8 +102,8 @@ def get_indicator_pairs(
 def get_time_series(
     indicator_code: str,
     country_codes: list[str],
-    start_year: Optional[int] = None,
-    end_year: Optional[int] = None,
+    start_year: int | None = None,
+    end_year: int | None = None,
 ) -> pl.DataFrame:
     """Get time series data for multiple countries.
 
