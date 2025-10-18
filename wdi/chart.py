@@ -1,6 +1,6 @@
 """Altair charting utilities for WDI data visualization."""
 
-from typing import Optional
+from typing import Optional, Any
 import altair as alt
 import polars as pl
 
@@ -20,7 +20,7 @@ def scatter_with_filter(
     height: int = 400,
 ) -> tuple[alt.Chart, alt.Parameter]:
     """Create a scatter plot with interval selection.
-    
+
     Args:
         df: Input DataFrame
         x: X-axis column name
@@ -34,19 +34,19 @@ def scatter_with_filter(
         log_y: Use log scale for Y-axis
         width: Chart width
         height: Chart height
-    
+
     Returns:
         Tuple of (chart, selection) where selection can be used to filter other charts
     """
-    brush = alt.selection_interval()
-    
+    brush = alt.selection_interval(name="brush")
+
     x_scale = alt.Scale(type="log") if log_x else alt.Scale()
     y_scale = alt.Scale(type="log") if log_y else alt.Scale()
-    
+
     base_tooltip = tooltip or [x, y]
     if color and color not in base_tooltip:
         base_tooltip.append(color)
-    
+
     chart = (
         alt.Chart(df)
         .mark_circle(size=60, opacity=0.7)
@@ -64,7 +64,7 @@ def scatter_with_filter(
         .properties(width=width, height=height, title=title)
         .add_params(brush)
     )
-    
+
     return chart, brush
 
 
@@ -78,10 +78,10 @@ def bar_chart_filtered(
     y_title: Optional[str] = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.selection_interval] = None,
+    selection: Optional[alt.Parameter] = None,
 ) -> alt.Chart:
     """Create a bar chart that responds to a selection filter.
-    
+
     Args:
         df: Input DataFrame
         x: X-axis column name
@@ -93,7 +93,7 @@ def bar_chart_filtered(
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
-    
+
     Returns:
         Altair Chart object
     """
@@ -108,10 +108,10 @@ def bar_chart_filtered(
         )
         .properties(width=width, height=height, title=title)
     )
-    
+
     if selection:
         chart = chart.transform_filter(selection)
-    
+
     return chart
 
 
@@ -123,10 +123,10 @@ def histogram_filtered(
     x_title: Optional[str] = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.selection_interval] = None,
+    selection: Optional[alt.Parameter] = None,
 ) -> alt.Chart:
     """Create a histogram that responds to a selection filter.
-    
+
     Args:
         df: Input DataFrame
         column: Column to create histogram for
@@ -136,7 +136,7 @@ def histogram_filtered(
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
-    
+
     Returns:
         Altair Chart object
     """
@@ -150,10 +150,10 @@ def histogram_filtered(
         )
         .properties(width=width, height=height, title=title)
     )
-    
+
     if selection:
         chart = chart.transform_filter(selection)
-    
+
     return chart
 
 
@@ -167,10 +167,10 @@ def line_chart_filtered(
     y_title: Optional[str] = None,
     width: int = 400,
     height: int = 400,
-    selection: Optional[alt.selection_interval] = None,
+    selection: Optional[alt.Parameter] = None,
 ) -> alt.Chart:
     """Create a line chart that responds to a selection filter.
-    
+
     Args:
         df: Input DataFrame
         x: X-axis column name (typically year)
@@ -182,7 +182,7 @@ def line_chart_filtered(
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
-    
+
     Returns:
         Altair Chart object
     """
@@ -197,10 +197,10 @@ def line_chart_filtered(
         )
         .properties(width=width, height=height, title=title)
     )
-    
+
     if selection:
         chart = chart.transform_filter(selection)
-    
+
     return chart
 
 
@@ -211,7 +211,7 @@ def save_linked_charts(
     overall_title: Optional[str] = None,
 ) -> None:
     """Save two horizontally-aligned charts to an HTML file.
-    
+
     Args:
         chart_left: Left chart (typically with selection)
         chart_right: Right chart (typically filtered by selection)
@@ -219,10 +219,10 @@ def save_linked_charts(
         overall_title: Optional overall title for the visualization
     """
     combined = (chart_left | chart_right)
-    
+
     if overall_title:
         combined = combined.properties(title=overall_title)
-    
+
     combined.save(filename)
 
 
@@ -233,10 +233,10 @@ def map_chart_filtered(
     title: str = "World Map",
     width: int = 600,
     height: int = 400,
-    selection: Optional[alt.selection_interval] = None,
+    selection: Optional[alt.Parameter] = None,
 ) -> alt.Chart:
     """Create a choropleth map that responds to a selection filter.
-    
+
     Args:
         df: Input DataFrame with country codes (ISO 3166-1 alpha-3)
         country_col: Column containing country codes
@@ -245,13 +245,13 @@ def map_chart_filtered(
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
-    
+
     Returns:
         Altair Chart object
     """
     # Load world map data
     world_map = alt.topo_feature(alt.datasets.world_110m.url, "countries")
-    
+
     # Convert 3-letter codes to numeric IDs (this is a simplification)
     # In practice, you'd need a proper mapping
     chart = (
@@ -268,8 +268,8 @@ def map_chart_filtered(
         .properties(width=width, height=height, title=title)
         .project("naturalEarth1")
     )
-    
+
     if selection:
         chart = chart.transform_filter(selection)
-    
+
     return chart
