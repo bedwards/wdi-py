@@ -36,9 +36,7 @@ df = male_df.join(
 ).rename({"value": "male_rate", "value_female": "female_rate"})
 
 # Calculate gender gap (male rate - female rate)
-df = df.with_columns(
-    (pl.col("male_rate") - pl.col("female_rate")).alias("gender_gap")
-)
+df = df.with_columns((pl.col("male_rate") - pl.col("female_rate")).alias("gender_gap"))
 
 # Add region and income group
 countries = wdi.sql.get_countries()
@@ -49,10 +47,7 @@ df = df.join(
 )
 
 # Remove nulls
-df = df.filter(
-    df["gender_gap"].is_not_null() &
-    df["region"].is_not_null()
-)
+df = df.filter(df["gender_gap"].is_not_null() & df["region"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with labor force participation data for 2021")
 print(f"Average gender gap: {df['gender_gap'].mean():.1f} percentage points")

@@ -17,17 +17,15 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 # Get school enrollment (secondary) and unemployment rate
 df = wdi.df.get_indicator_pairs(
-    indicator_x="SE.SEC.ENRR",        # School enrollment, secondary (% gross)
-    indicator_y="SL.UEM.TOTL.ZS",     # Unemployment, total (% of labor force)
+    indicator_x="SE.SEC.ENRR",  # School enrollment, secondary (% gross)
+    indicator_y="SL.UEM.TOTL.ZS",  # Unemployment, total (% of labor force)
     year=2020,
     include_region=True,
     include_income_group=True,
 )
 
 # Remove nulls
-df = df.filter(
-    df["x_value"].is_not_null() & df["y_value"].is_not_null()
-)
+df = df.filter(df["x_value"].is_not_null() & df["y_value"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with education and unemployment data for 2020")
 

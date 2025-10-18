@@ -19,16 +19,14 @@ output_dir.mkdir(parents=True, exist_ok=True)
 # Get health expenditure and infant mortality for 2019
 df = wdi.df.get_indicator_pairs(
     indicator_x="SH.XPD.CHEX.PC.CD",  # Current health expenditure per capita
-    indicator_y="SP.DYN.IMRT.IN",     # Infant mortality rate (per 1,000 live births)
+    indicator_y="SP.DYN.IMRT.IN",  # Infant mortality rate (per 1,000 live births)
     year=2019,
     include_region=True,
     include_income_group=True,
 )
 
 # Remove nulls
-df = df.filter(
-    df["x_value"].is_not_null() & df["y_value"].is_not_null()
-)
+df = df.filter(df["x_value"].is_not_null() & df["y_value"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with health spending and mortality data for 2019")
 

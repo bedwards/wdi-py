@@ -17,17 +17,15 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 # Get GDP per capita and life expectancy
 df = wdi.df.get_indicator_pairs(
-    indicator_x="NY.GDP.PCAP.CD",   # GDP per capita
-    indicator_y="SP.DYN.LE00.IN",   # Life expectancy at birth
+    indicator_x="NY.GDP.PCAP.CD",  # GDP per capita
+    indicator_y="SP.DYN.LE00.IN",  # Life expectancy at birth
     year=2021,
     include_region=True,
     include_income_group=True,
 )
 
 # Remove nulls
-df = df.filter(
-    df["x_value"].is_not_null() & df["y_value"].is_not_null()
-)
+df = df.filter(df["x_value"].is_not_null() & df["y_value"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with GDP and life expectancy data for 2021")
 

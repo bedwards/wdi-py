@@ -58,8 +58,12 @@ def scatter_with_filter(
                 if color
                 else alt.value("steelblue")
             ),
-            tooltip=[alt.Tooltip(col, format=".2f") if df[col].dtype in [pl.Float64, pl.Float32] else alt.Tooltip(col) 
-                     for col in base_tooltip],
+            tooltip=[
+                alt.Tooltip(col, format=".2f")
+                if df[col].dtype in [pl.Float64, pl.Float32]
+                else alt.Tooltip(col)
+                for col in base_tooltip
+            ],
         )
         .properties(width=width, height=height, title=title)
         .add_params(brush)
@@ -218,7 +222,7 @@ def save_linked_charts(
         filename: Output filename (should end in .html)
         overall_title: Optional overall title for the visualization
     """
-    combined = (chart_left | chart_right)
+    combined = chart_left | chart_right
 
     if overall_title:
         combined = combined.properties(title=overall_title)

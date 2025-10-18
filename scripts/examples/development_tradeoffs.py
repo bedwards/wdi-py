@@ -17,17 +17,15 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 # Get GDP per capita and CO2 emissions for 2019 (pre-pandemic)
 df = wdi.df.get_indicator_pairs(
-    indicator_x="NY.GDP.PCAP.CD",      # GDP per capita (current US$)
-    indicator_y="EN.ATM.CO2E.PC",       # CO2 emissions (metric tons per capita)
+    indicator_x="NY.GDP.PCAP.CD",  # GDP per capita (current US$)
+    indicator_y="EN.ATM.CO2E.PC",  # CO2 emissions (metric tons per capita)
     year=2019,
     include_region=True,
     include_income_group=True,
 )
 
 # Remove nulls
-df = df.filter(
-    df["x_value"].is_not_null() & df["y_value"].is_not_null()
-)
+df = df.filter(df["x_value"].is_not_null() & df["y_value"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with GDP and CO2 data for 2019")
 

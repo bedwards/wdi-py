@@ -14,14 +14,14 @@ def get_connection(
     password: Optional[str] = None,
 ) -> Connection:
     """Create a connection to the WDI PostgreSQL database.
-    
+
     Args:
         host: Database host
         port: Database port
         database: Database name
         user: Database user
         password: Database password (None uses trust authentication)
-    
+
     Returns:
         PostgreSQL connection object
     """
@@ -33,17 +33,17 @@ def get_connection(
     }
     if password:
         conn_params["password"] = password
-    
+
     return psycopg2.connect(**conn_params)
 
 
 def query(sql: str, conn: Optional[Connection] = None) -> pl.DataFrame:
     """Execute a SQL query and return results as a Polars DataFrame.
-    
+
     Args:
         sql: SQL query string
         conn: Database connection (creates new one if None)
-    
+
     Returns:
         Query results as Polars DataFrame
     """
@@ -51,7 +51,7 @@ def query(sql: str, conn: Optional[Connection] = None) -> pl.DataFrame:
     if conn is None:
         conn = get_connection()
         close_conn = True
-    
+
     try:
         df = pl.read_database(sql, conn)
         return df
@@ -66,32 +66,32 @@ def get_countries(
     conn: Optional[Connection] = None,
 ) -> pl.DataFrame:
     """Get countries, optionally filtered by region or income group.
-    
+
     Args:
         region: Filter by region name
         income_group: Filter by income group
         conn: Database connection
-    
+
     Returns:
         DataFrame with country_code, country_name, region, income_group
     """
     sql = "SELECT country_code, country_name, region, income_group FROM wdi.countries WHERE 1=1"
     params = []
-    
+
     if region:
         sql += " AND region = %s"
         params.append(region)
     if income_group:
         sql += " AND income_group = %s"
         params.append(income_group)
-    
+
     sql += " ORDER BY country_name"
-    
+
     close_conn = False
     if conn is None:
         conn = get_connection()
         close_conn = True
-    
+
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)
@@ -109,32 +109,32 @@ def get_indicators(
     conn: Optional[Connection] = None,
 ) -> pl.DataFrame:
     """Get indicators, optionally filtered by topic or search term.
-    
+
     Args:
         topic: Filter by topic
         search: Search in indicator_name (case-insensitive)
         conn: Database connection
-    
+
     Returns:
         DataFrame with indicator_code, indicator_name, topic, etc.
     """
     sql = "SELECT * FROM wdi.indicators WHERE 1=1"
     params = []
-    
+
     if topic:
         sql += " AND topic = %s"
         params.append(topic)
     if search:
         sql += " AND LOWER(indicator_name) LIKE LOWER(%s)"
         params.append(f"%{search}%")
-    
+
     sql += " ORDER BY indicator_name"
-    
+
     close_conn = False
     if conn is None:
         conn = get_connection()
         close_conn = True
-    
+
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)
@@ -155,7 +155,7 @@ def get_values(
     conn: Optional[Connection] = None,
 ) -> pl.DataFrame:
     """Get indicator values with flexible filtering.
-    
+
     Args:
         indicator_code: Indicator code to retrieve
         year: Specific year (overrides start_year/end_year)
@@ -163,14 +163,14 @@ def get_values(
         start_year: Start year (inclusive)
         end_year: End year (inclusive)
         conn: Database connection
-    
+
     Returns:
-        DataFrame with country_code, country_name, indicator_code, 
+        DataFrame with country_code, country_name, indicator_code,
         indicator_name, year, value
     """
     sql = "SELECT * FROM wdi.values WHERE indicator_code = %s"
     params = [indicator_code]
-    
+
     if year is not None:
         sql += " AND year = %s"
         params.append(year)
@@ -181,18 +181,18 @@ def get_values(
         if end_year is not None:
             sql += " AND year <= %s"
             params.append(end_year)
-    
+
     if country_code:
         sql += " AND country_code = %s"
         params.append(country_code)
-    
+
     sql += " ORDER BY country_name, year"
-    
+
     close_conn = False
     if conn is None:
         conn = get_connection()
         close_conn = True
-    
+
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)

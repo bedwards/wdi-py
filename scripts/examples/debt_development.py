@@ -26,9 +26,9 @@ df = wdi.df.get_indicator_pairs(
 
 # Remove nulls and extreme outliers
 df = df.filter(
-    df["x_value"].is_not_null() & 
-    df["y_value"].is_not_null() &
-    (df["x_value"] < 300)  # Remove extreme debt outliers
+    df["x_value"].is_not_null()
+    & df["y_value"].is_not_null()
+    & (df["x_value"] < 300)  # Remove extreme debt outliers
 )
 
 print(f"Analyzing {len(df)} countries with debt and growth data for 2020")

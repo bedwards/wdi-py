@@ -20,16 +20,14 @@ output_dir.mkdir(parents=True, exist_ok=True)
 # and GDP per capita for 2019
 df = wdi.df.get_indicator_pairs(
     indicator_x="SL.EMP.TOTL.SP.ZS",  # Employment to population ratio
-    indicator_y="NY.GDP.PCAP.CD",      # GDP per capita
+    indicator_y="NY.GDP.PCAP.CD",  # GDP per capita
     year=2019,
     include_region=True,
     include_income_group=True,
 )
 
 # Remove nulls
-df = df.filter(
-    df["x_value"].is_not_null() & df["y_value"].is_not_null()
-)
+df = df.filter(df["x_value"].is_not_null() & df["y_value"].is_not_null())
 
 print(f"Analyzing {len(df)} countries with employment and GDP data for 2019")
 

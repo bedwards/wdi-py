@@ -51,14 +51,16 @@ def test_query_with_connection(mock_connection: Mock) -> None:
 
 def test_query_creates_connection_if_none() -> None:
     """Test query creates connection if none provided."""
-    with patch("wdi.sql.get_connection") as mock_get_conn, \
-         patch("polars.read_database") as mock_read:
+    with (
+        patch("wdi.sql.get_connection") as mock_get_conn,
+        patch("polars.read_database") as mock_read,
+    ):
         mock_conn = Mock()
         mock_get_conn.return_value = mock_conn
         mock_read.return_value = pl.DataFrame({"a": [1, 2, 3]})
-        
+
         result = sql.query("SELECT * FROM test")
-        
+
         assert isinstance(result, pl.DataFrame)
         mock_get_conn.assert_called_once()
         mock_conn.close.assert_called_once()
@@ -71,12 +73,10 @@ def test_get_countries_no_filters(mock_connection: Mock) -> None:
         ("USA", "United States", "North America", "High income"),
         ("CHN", "China", "East Asia & Pacific", "Upper middle income"),
     ]
-    cursor_mock.description = [
-        ("country_code",), ("country_name",), ("region",), ("income_group",)
-    ]
-    
+    cursor_mock.description = [("country_code",), ("country_name",), ("region",), ("income_group",)]
+
     result = sql.get_countries(conn=mock_connection)
-    
+
     assert isinstance(result, pl.DataFrame)
     assert len(result) == 2
     assert "country_code" in result.columns
@@ -88,12 +88,10 @@ def test_get_countries_with_region_filter(mock_connection: Mock) -> None:
     cursor_mock.fetchall.return_value = [
         ("USA", "United States", "North America", "High income"),
     ]
-    cursor_mock.description = [
-        ("country_code",), ("country_name",), ("region",), ("income_group",)
-    ]
-    
+    cursor_mock.description = [("country_code",), ("country_name",), ("region",), ("income_group",)]
+
     result = sql.get_countries(region="North America", conn=mock_connection)
-    
+
     cursor_mock.execute.assert_called_once()
     sql_call = cursor_mock.execute.call_args[0][0]
     assert "region = %s" in sql_call
@@ -106,11 +104,14 @@ def test_get_indicators_no_filters(mock_connection: Mock) -> None:
         ("NY.GDP.MKTP.CD", "GDP (current US$)", "Economy", "GDP at purchaser's prices"),
     ]
     cursor_mock.description = [
-        ("indicator_code",), ("indicator_name",), ("topic",), ("short_definition",)
+        ("indicator_code",),
+        ("indicator_name",),
+        ("topic",),
+        ("short_definition",),
     ]
-    
+
     result = sql.get_indicators(conn=mock_connection)
-    
+
     assert isinstance(result, pl.DataFrame)
     assert "indicator_code" in result.columns
 
@@ -120,9 +121,9 @@ def test_get_indicators_with_search(mock_connection: Mock) -> None:
     cursor_mock = mock_connection.cursor.return_value.__enter__.return_value
     cursor_mock.fetchall.return_value = []
     cursor_mock.description = [("indicator_code",), ("indicator_name",)]
-    
+
     sql.get_indicators(search="GDP", conn=mock_connection)
-    
+
     cursor_mock.execute.assert_called_once()
     sql_call = cursor_mock.execute.call_args[0][0]
     assert "LOWER(indicator_name) LIKE LOWER(%s)" in sql_call
@@ -135,12 +136,17 @@ def test_get_values_basic(mock_connection: Mock) -> None:
         (1, "USA", "United States", "NY.GDP.MKTP.CD", "GDP", 2020, 21000000000000),
     ]
     cursor_mock.description = [
-        ("id",), ("country_code",), ("country_name",), 
-        ("indicator_code",), ("indicator_name",), ("year",), ("value",)
+        ("id",),
+        ("country_code",),
+        ("country_name",),
+        ("indicator_code",),
+        ("indicator_name",),
+        ("year",),
+        ("value",),
     ]
-    
+
     result = sql.get_values("NY.GDP.MKTP.CD", conn=mock_connection)
-    
+
     assert isinstance(result, pl.DataFrame)
     cursor_mock.execute.assert_called_once()
 
@@ -150,9 +156,9 @@ def test_get_values_with_year_filter(mock_connection: Mock) -> None:
     cursor_mock = mock_connection.cursor.return_value.__enter__.return_value
     cursor_mock.fetchall.return_value = []
     cursor_mock.description = [("country_code",), ("year",), ("value",)]
-    
+
     sql.get_values("NY.GDP.MKTP.CD", year=2020, conn=mock_connection)
-    
+
     sql_call = cursor_mock.execute.call_args[0][0]
     assert "year = %s" in sql_call
 
@@ -162,14 +168,9 @@ def test_get_values_with_year_range(mock_connection: Mock) -> None:
     cursor_mock = mock_connection.cursor.return_value.__enter__.return_value
     cursor_mock.fetchall.return_value = []
     cursor_mock.description = [("year",), ("value",)]
-    
-    sql.get_values(
-        "NY.GDP.MKTP.CD", 
-        start_year=2010, 
-        end_year=2020, 
-        conn=mock_connection
-    )
-    
+
+    sql.get_values("NY.GDP.MKTP.CD", start_year=2010, end_year=2020, conn=mock_connection)
+
     sql_call = cursor_mock.execute.call_args[0][0]
     assert "year >= %s" in sql_call
     assert "year <= %s" in sql_call
