@@ -43,7 +43,7 @@ def test_scatter_with_filter_basic(sample_df: pl.DataFrame) -> None:
     )
     
     assert isinstance(chart_obj, alt.Chart)
-    assert isinstance(brush, alt.selection_interval)
+    assert isinstance(brush, alt.Parameter)
 
 
 def test_scatter_with_filter_with_color(sample_df: pl.DataFrame) -> None:

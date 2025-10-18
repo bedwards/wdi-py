@@ -18,7 +18,7 @@ def scatter_with_filter(
     log_y: bool = False,
     width: int = 400,
     height: int = 400,
-) -> tuple[alt.Chart, alt.selection_interval]:
+) -> tuple[alt.Chart, alt.Parameter]:
     """Create a scatter plot with interval selection.
     
     Args:
@@ -58,7 +58,7 @@ def scatter_with_filter(
                 if color
                 else alt.value("steelblue")
             ),
-            tooltip=[alt.Tooltip(col, format=".2f" if df[col].dtype in [pl.Float64, pl.Float32] else None) 
+            tooltip=[alt.Tooltip(col, format=".2f") if df[col].dtype in [pl.Float64, pl.Float32] else alt.Tooltip(col) 
                      for col in base_tooltip],
         )
         .properties(width=width, height=height, title=title)
