@@ -1,4 +1,0 @@
-polars>=1.0.0
-psycopg2-binary>=2.9.9
-altair>=5.4.0
-vega-datasets>=0.9.0

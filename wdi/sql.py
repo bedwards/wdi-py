@@ -51,7 +51,7 @@ def get_connection(
     if password or os.getenv("DB_PASSWORD"):
         conn_params["password"] = password or os.getenv("DB_PASSWORD")
 
-    return psycopg2.connect(**conn_params)  # type: ignore
+    return psycopg2.connect(**conn_params)
 
 
 def query(sql: str, conn: Connection | None = None) -> pl.DataFrame:
