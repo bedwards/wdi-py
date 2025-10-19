@@ -264,7 +264,7 @@ def map_chart_filtered(
         .mark_geoshape()
         .transform_lookup(
             lookup="id",
-            from_=alt.LookupData(data=df, key=country_col, fields=[value_col]),
+            from_=alt.LookupData(df.to_pandas(), country_col, [value_col]),
         )
         .encode(
             color=alt.Color(f"{value_col}:Q", scale=alt.Scale(scheme="viridis")),

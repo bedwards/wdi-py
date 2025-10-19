@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.12']
 
     steps:
       - uses: actions/checkout@v4
@@ -24,10 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          # Choose ONE convention. If you publish extras:
-          # pip install -e ".[dev]"
-          # Or, if you keep a dev requirements file:
-          pip install -r requirements-dev.txt
+          pip install -e ".[dev]"
 
       - name: Lint with ruff
         run: |
