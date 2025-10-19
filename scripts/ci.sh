@@ -21,6 +21,11 @@ dmypy run -- wdi --fast-module-lookup
 echo "✓ Type check passed"
 echo
 
+echo "→ Type checking with pyright..."
+pyright
+echo "✓ pyright passed"
+echo
+
 echo "→ Running tests with coverage..."
 pytest -q --cov=wdi --cov-report=xml --cov-report=term-missing
 echo "✓ Tests passed"

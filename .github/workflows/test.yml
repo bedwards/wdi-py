@@ -44,6 +44,10 @@ jobs:
         run: |
           mypy --config-file mypy.ini wdi --fast-module-lookup
 
+      - name: Type check with pyright
+        run: |
+          pyright
+
       - name: Test with pytest (with coverage)
         run: |
           pytest -q --cov=wdi --cov-report=xml

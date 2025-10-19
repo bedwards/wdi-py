@@ -1,0 +1,34 @@
+{
+    "include": [
+        "wdi"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/node_modules",
+        ".venv",
+        "venv"
+    ],
+    "typeCheckingMode": "basic",
+    "pythonVersion": "3.11",
+    "pythonPlatform": "All",
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "reportUnusedImport": true,
+    "reportUnusedClass": true,
+    "reportUnusedFunction": true,
+    "reportUnusedVariable": true,
+    "reportDuplicateImport": true,
+    "reportOptionalSubscript": true,
+    "reportOptionalMemberAccess": true,
+    "reportOptionalCall": true,
+    "reportOptionalIterable": true,
+    "reportOptionalContextManager": true,
+    "reportOptionalOperand": true,
+    "reportUntypedFunctionDecorator": false,
+    "reportUntypedClassDecorator": false,
+    "reportUntypedBaseClass": true,
+    "reportUnnecessaryIsInstance": true,
+    "reportUnnecessaryCast": true,
+    "reportConstantRedefinition": true,
+    "stubPath": "typings"
+}
