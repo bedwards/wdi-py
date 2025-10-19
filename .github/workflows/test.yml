@@ -42,7 +42,7 @@ jobs:
 
       - name: Type check with mypy
         run: |
-          mypy --config-file mypy.ini wdi
+          mypy --config-file mypy.ini wdi --fast-module-lookup
 
       - name: Test with pytest (with coverage)
         run: |
