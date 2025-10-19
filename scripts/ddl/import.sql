@@ -93,13 +93,13 @@ CREATE TEMP TABLE data_staging (
 -- LOAD DATA INTO STAGING TABLES
 -- ============================================================================
 
-COPY country_staging FROM '/workspace/WDI_CSV/WDICountry.csv' 
+COPY country_staging FROM '/workspace/data/input/WDI_CSV/WDICountry.csv' 
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
 
-COPY series_staging FROM '/workspace/WDI_CSV/WDISeries.csv' 
+COPY series_staging FROM '/workspace/data/input/WDI_CSV/WDISeries.csv' 
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
 
-COPY data_staging FROM '/workspace/WDI_CSV/WDICSV.csv' 
+COPY data_staging FROM '/workspace/data/input/WDI_CSV/WDICSV.csv' 
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
 
 -- ============================================================================
