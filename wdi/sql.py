@@ -76,7 +76,7 @@ def get_countries(
         DataFrame with country_code, country_name, region, income_group
     """
     sql = "SELECT country_code, country_name, region, income_group FROM wdi.countries WHERE 1=1"
-    params = []
+    params: list[str | int] = []
 
     if region:
         sql += " AND region = %s"
@@ -94,10 +94,13 @@ def get_countries(
 
     try:
         with conn.cursor() as cur:
-            cur.execute(sql, params)
-            rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-        return pl.DataFrame(rows, schema=columns, orient="row")
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+                columns = [desc[0] for desc in cur.description] if cur.description else []
+            
+            return pl.DataFrame(rows, schema=columns, orient="row")
+
     finally:
         if close_conn:
             conn.close()
@@ -119,7 +122,7 @@ def get_indicators(
         DataFrame with indicator_code, indicator_name, topic, etc.
     """
     sql = "SELECT * FROM wdi.indicators WHERE 1=1"
-    params = []
+    params: list[str | int] = []
 
     if topic:
         sql += " AND topic = %s"
@@ -139,8 +142,10 @@ def get_indicators(
         with conn.cursor() as cur:
             cur.execute(sql, params)
             rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
+            columns = [desc[0] for desc in cur.description] if cur.description else []
+
         return pl.DataFrame(rows, schema=columns, orient="row")
+
     finally:
         if close_conn:
             conn.close()
@@ -197,8 +202,10 @@ def get_values(
         with conn.cursor() as cur:
             cur.execute(sql, params)
             rows = cur.fetchall()
-            columns = [desc[0] for desc in cur.description]
-        return pl.DataFrame(rows, schema=columns, orient="row")
+            columns = [desc[0] for desc in cur.description] if cur.description else []
+
+        return pl.DataFrame(rows, schema=columns, orient="row")        
+
     finally:
         if close_conn:
             conn.close()

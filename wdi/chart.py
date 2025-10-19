@@ -68,7 +68,7 @@ def scatter_with_filter(
         .add_params(brush)
     )
 
-    return chart, brush
+    return chart, brush  
 
 
 def bar_chart_filtered(
@@ -115,7 +115,7 @@ def bar_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart
+    return chart  # type: ignore[return-value]
 
 
 def histogram_filtered(
@@ -157,7 +157,7 @@ def histogram_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart
+    return chart  # type: ignore[return-value]
 
 
 def line_chart_filtered(
@@ -204,7 +204,7 @@ def line_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart
+    return chart  # type: ignore[return-value]
 
 
 def save_linked_charts(
@@ -275,4 +275,4 @@ def map_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart
+    return chart  # type: ignore[return-value]
