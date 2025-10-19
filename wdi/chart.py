@@ -252,8 +252,10 @@ def map_chart_filtered(
     Returns:
         Altair Chart object
     """
-    # Load world map data
-    world_map = alt.topo_feature(alt.datasets.world_110m.url, "countries")
+    # Load world map data using the correct API
+    from vega_datasets import data as vega_data
+
+    world_map = alt.topo_feature(vega_data.world_110m.url, "countries")
 
     # Convert 3-letter codes to numeric IDs (this is a simplification)
     # In practice, you'd need a proper mapping
@@ -262,7 +264,7 @@ def map_chart_filtered(
         .mark_geoshape()
         .transform_lookup(
             lookup="id",
-            from_=alt.LookupData(df, country_col, [value_col]),
+            from_=alt.LookupData(data=df, key=country_col, fields=[value_col]),
         )
         .encode(
             color=alt.Color(f"{value_col}:Q", scale=alt.Scale(scheme="viridis")),
