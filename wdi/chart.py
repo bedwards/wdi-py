@@ -7,7 +7,6 @@ import polars as pl
 # THEME CONFIGURATION - Centralized design system
 # =============================================================================
 
-
 class ChartTheme:
     """Opinionated design theme for WDI visualizations.
 
@@ -130,9 +129,29 @@ class ChartTheme:
 
 
 # =============================================================================
-# CHART FUNCTIONS
+# SHARED PROPERTIES
 # =============================================================================
 
+def legend_title(color):
+    if color == 'income_group':
+        return 'Income group'
+    if color == 'region':
+        return 'Region'
+    if color == 'country_code':
+        return 'Country code'
+    return color
+
+def legend(color):
+    return alt.Legend(
+        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+        title=legend_title(color),
+    )
+
+
+# =============================================================================
+# CHART FUNCTIONS
+# =============================================================================
 
 def scatter_with_filter(
     df: pl.DataFrame,
@@ -232,10 +251,7 @@ def scatter_with_filter(
                     alt.Color(
                         f"{color}:N",
                         scale=ChartTheme.get_color_scale(),
-                        legend=alt.Legend(
-                            titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                            labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                        ),
+                        legend=legend(color),
                     ),
                     alt.value(ChartTheme.DESELECTED_COLOR),
                 )
@@ -322,10 +338,7 @@ def bar_chart_filtered(
                 alt.Color(
                     f"{color}:N",
                     scale=ChartTheme.get_color_scale(),
-                    legend=alt.Legend(
-                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    ),
+                    legend=legend(color),
                 )
                 if color
                 else alt.value(ChartTheme.COLORS[0])
@@ -494,10 +507,7 @@ def line_chart_filtered(
                 alt.Color(
                     f"{color}:N",
                     scale=ChartTheme.get_color_scale(),
-                    legend=alt.Legend(
-                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    ),
+                    legend=legend(color),
                 )
                 if color
                 else alt.value(ChartTheme.COLORS[0])
@@ -598,10 +608,7 @@ def map_chart_filtered(
             color=alt.Color(
                 f"{value_col}:Q",
                 scale=alt.Scale(scheme="blues"),
-                legend=alt.Legend(
-                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                ),
+                legend=legend(value_col),
             ),
             tooltip=[
                 alt.Tooltip(country_col),

@@ -246,3 +246,27 @@ def get_values(
     finally:
         if close_conn:
             conn.close()
+
+
+def get_country_name(country_code: str) -> str:
+    """Return the country name for a given ISO 3166-1 alpha-2/alpha-3 code.
+
+    Args:
+        country_code: Two- or three-letter country code (e.g. 'US', 'USA')
+        conn: Optional existing database connection
+
+    Returns:
+        The country name, or None if the code isn't found.
+    """
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT country_name FROM wdi.countries WHERE country_code = %s",
+                (country_code,),
+            )
+            result = cur.fetchone()
+            return result[0] if result else country_code
+    finally:
+        conn.close()
