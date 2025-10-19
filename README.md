@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/bedwards/wdi-py/actions/workflows/test.yml/badge.svg)](https://github.com/bedwards/wdi-py/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/bedwards/wdi-py/branch/main/graph/badge.svg)](https://codecov.io/gh/bedwards/wdi-py)
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![Python Version](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 A Python toolkit for analyzing World Bank Development Indicators (WDI) data with interactive visualizations. Query a PostgreSQL database of WDI data, manipulate it with Polars, and create linked interactive charts with Altair.
