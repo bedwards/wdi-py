@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import altair as alt
 
 import wdi
-from wdi.chart import ChartTheme
+from wdi.chart import ChartTheme, LineChartFiltered
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -58,7 +58,20 @@ chart = (
         cornerRadiusTopLeft=2,
         cornerRadiusTopRight=2,
     )
+    .transform_calculate(
+        value_pct='datum.value / 100'
+    )
     .encode(
+        x=alt.X(
+            "value_pct:Q",
+            title=r"Internet Users (% of population)",
+            axis=alt.Axis(
+                format=ChartTheme.format_number("percent"),
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                gridColor=ChartTheme.GRID_COLOR,
+            ),
+        ),
         y=alt.Y(
             "country_name:N",
             title="Country",
@@ -68,29 +81,15 @@ chart = (
                 titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
             ),
         ),
-        x=alt.X(
-            "value:Q",
-            title="Internet Users (% of population)",
-            axis=alt.Axis(
-                format=ChartTheme.format_number("decimal"),
-                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                gridColor=ChartTheme.GRID_COLOR,
-            ),
-        ),
         color=alt.Color(
-            "income_group:N",
+            "country_name:N",
             scale=ChartTheme.get_color_scale(),
-            legend=alt.Legend(
-                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-            ),
         ),
         tooltip=[
-            alt.Tooltip("country_name:N"),
-            alt.Tooltip("value:Q", format=".1f"),
-            alt.Tooltip("year:Q", format="d"),
-            alt.Tooltip("income_group:N"),
+            alt.Tooltip("country_name:N", title="Country"),
+            alt.Tooltip("income_group:N", title="Income"),
+            alt.Tooltip("year:Q", format="d", title="Year"),
+            alt.Tooltip("value_pct:Q", format=".0%", title="Internet use"),
         ],
     )
     .properties(
@@ -120,19 +119,22 @@ ts_df = wdi.df.get_time_series(
 )
 
 # Create line chart
-line = wdi.chart.line_chart_filtered(
-    df=ts_df,
-    x="year",
-    y="value",
-    color="country_code",
-    title="Employment Rates Over Time",
-    subtitle="Employment-to-population ratio, selected countries (1990-2023)",
-    x_title="Year",
-    y_title="Employment to Population Ratio (%)",
-    y_format="decimal",
-    width=600,
-    height=500,
-    selection=brush,
+line = (LineChartFiltered(ts_df)
+    .mark_wdi()
+    .transform_calculate(value_pct='datum.value / 100')
+    .encode_wdi(
+        x="year",
+        y="value_pct",
+        color="country_name",
+        title="Employment Rates Over Time",
+        subtitle="Employment-to-population ratio, selected countries (1990-2023)",
+        x_title="Year",
+        y_title="Employment to Population Ratio (%)",
+        y_format="percent",
+        width=600,
+        height=500,
+        selection=brush,
+    )
 )
 
 # Save linked charts

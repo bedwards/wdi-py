@@ -109,7 +109,7 @@ class ChartTheme:
         """
         formats = {
             "currency": "$,.2s",  # $1.2M, $345.6k
-            "percent": ".1f",  # 12.3
+            "percent": ".0%",
             "large": ",.2s",  # 1.2M, 345.6k
             "decimal": ".2f",  # 12.34
             "integer": "d",  # 1234
@@ -132,20 +132,22 @@ class ChartTheme:
 # SHARED PROPERTIES
 # =============================================================================
 
-def legend_title(color):
-    if color == 'income_group':
-        return 'Income group'
-    if color == 'region':
+def to_title(column):
+    if column == 'income_group':
+        return 'Income'
+    if column == 'region':
         return 'Region'
-    if color == 'country_code':
+    if column == 'country_code':
         return 'Country code'
-    return color
+    if column == 'country_name':
+        return 'Country'
+    return column
 
 def legend(color):
     return alt.Legend(
         titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
         labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-        title=legend_title(color),
+        title=to_title(color),
     )
 
 
@@ -436,6 +438,84 @@ def histogram_filtered(
     return chart  # type: ignore[no-any-return]
 
 
+class LineChartFiltered(alt.Chart):
+    def mark_wdi(self):
+        return (self
+            .mark_line(
+                strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
+                point=alt.OverlayMarkDef(size=40, filled=True),
+            )
+        )
+
+    def encode_wdi(self,
+        x: str,
+        y: str,
+        color: str | None = None,
+        title: str = "Line Chart",
+        subtitle: str | None = None,
+        x_title: str | None = None,
+        y_title: str | None = None,
+        y_format: str = "default",
+        width: int = 450,
+        height: int = ChartTheme.HEIGHT,
+        selection: alt.Parameter | None = None,
+    ) -> alt.Chart:
+        x_axis_format = (
+            ChartTheme.format_axis_year()
+            if "year" in x.lower()
+            else ChartTheme.format_number("default")
+        )
+
+        chart = (self    
+            .encode(
+                x=alt.X(
+                    f"{x}:Q",
+                    title=x_title or x,
+                    axis=alt.Axis(
+                        format=x_axis_format,
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        gridColor=ChartTheme.GRID_COLOR,
+                    ),
+                ),
+                y=alt.Y(
+                    f"{y}:Q",
+                    title=y_title or y,
+                    axis=alt.Axis(
+                        format=ChartTheme.format_number(y_format),
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        gridColor=ChartTheme.GRID_COLOR,
+                    ),
+                ),
+                color=(
+                    alt.Color(
+                        f"{color}:N",
+                        scale=ChartTheme.get_color_scale(),
+                        legend=legend(color),
+                    )
+                    if color
+                    else alt.value(ChartTheme.COLORS[0])
+                ),
+                tooltip=[
+                    alt.Tooltip(x, format=x_axis_format),
+                    alt.Tooltip(y, format=ChartTheme.format_number(y_format)),
+                ]
+                + ([alt.Tooltip(color)] if color else []),
+            )
+            .properties(
+                width=width,
+                height=height,
+                title=ChartTheme.get_title_params(title, subtitle),
+            )
+        )
+
+        if selection:
+            chart = chart.transform_filter(selection)
+
+        return chart  # type: ignore[no-any-return]
+
+
 def line_chart_filtered(
     df: pl.DataFrame,
     x: str,
@@ -469,66 +549,22 @@ def line_chart_filtered(
     Returns:
         Altair Chart object
     """
-    # Detect if x is a year column
-    x_axis_format = (
-        ChartTheme.format_axis_year()
-        if "year" in x.lower()
-        else ChartTheme.format_number("default")
-    )
-
-    chart = (
-        alt.Chart(df)
-        .mark_line(
-            strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
-            point=alt.OverlayMarkDef(size=40, filled=True),
-        )
-        .encode(
-            x=alt.X(
-                f"{x}:Q",
-                title=x_title or x,
-                axis=alt.Axis(
-                    format=x_axis_format,
-                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                    gridColor=ChartTheme.GRID_COLOR,
-                ),
-            ),
-            y=alt.Y(
-                f"{y}:Q",
-                title=y_title or y,
-                axis=alt.Axis(
-                    format=ChartTheme.format_number(y_format),
-                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                    gridColor=ChartTheme.GRID_COLOR,
-                ),
-            ),
-            color=(
-                alt.Color(
-                    f"{color}:N",
-                    scale=ChartTheme.get_color_scale(),
-                    legend=legend(color),
-                )
-                if color
-                else alt.value(ChartTheme.COLORS[0])
-            ),
-            tooltip=[
-                alt.Tooltip(x, format=x_axis_format),
-                alt.Tooltip(y, format=ChartTheme.format_number(y_format)),
-            ]
-            + ([alt.Tooltip(color)] if color else []),
-        )
-        .properties(
-            width=width,
-            height=height,
-            title=ChartTheme.get_title_params(title, subtitle),
+    return (LineChartFiltered(df)
+        .mark_wdi()
+        .encode_wdi(
+            x,
+            y,
+            color,
+            title,
+            subtitle,
+            x_title,
+            y_title,
+            y_format,
+            width,
+            height,
+            selection,
         )
     )
-
-    if selection:
-        chart = chart.transform_filter(selection)
-
-    return chart  # type: ignore[no-any-return]
 
 
 def save_linked_charts(
