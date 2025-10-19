@@ -10,10 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import altair as alt
-
 import wdi
-from wdi.chart import ChartTheme
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -59,56 +56,27 @@ ts_df = wdi.df.get_time_series(
     end_year=2019,
 )
 
-# Create line chart for selected countries
-line = (
-    alt.Chart(ts_df)
-    .mark_line(
-        strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
-        point=alt.OverlayMarkDef(size=40, filled=True),
-    )
-    .encode(
-        x=alt.X(
-            "year:Q",
-            title="Year",
-            axis=alt.Axis(
-                format=ChartTheme.format_axis_year(),
-                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                gridColor=ChartTheme.GRID_COLOR,
-            ),
-        ),
-        y=alt.Y(
-            "value:Q",
-            title="Health Expenditure per Capita (US$)",
-            axis=alt.Axis(
-                format=ChartTheme.format_number("currency"),
-                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                gridColor=ChartTheme.GRID_COLOR,
-            ),
-        ),
-        color=alt.Color(
-            "country_code:N",
-            scale=ChartTheme.get_color_scale(),
-            legend=alt.Legend(
-                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-            ),
-        ),
-        tooltip=[
-            alt.Tooltip("country_name:N"),
-            alt.Tooltip("year:Q", format="d"),
-            alt.Tooltip("value:Q", format=ChartTheme.format_number("currency")),
-        ],
-    )
-    .properties(
-        width=450,
-        height=500,
-        title=ChartTheme.get_title_params(
-            "Health Spending Over Time", "Selected countries (2000-2019)"
-        ),
-    )
-    .transform_filter(brush)
+# Add country_name to ts_df by joining with df
+ts_df = ts_df.join(
+    df.select(["country_code", "country_name"]),
+    on="country_code",
+    how="left",
+)
+
+# Create line chart for selected countries - use wdi.chart function
+line = wdi.chart.line_chart_filtered(
+    df=ts_df,
+    x="year",
+    y="value",
+    color="country_code",
+    title="Health Spending Over Time",
+    subtitle="Selected countries (2000-2019)",
+    x_title="Year",
+    y_title="Health Expenditure per Capita (US$)",
+    y_format="currency",
+    width=450,
+    height=500,
+    selection=brush,
 )
 
 # Save linked charts
