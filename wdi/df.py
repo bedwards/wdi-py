@@ -148,6 +148,7 @@ def pivot_wide(
         values=value_col,
     )
 
+
 def calculate_growth_rate(
     df: pl.DataFrame,
     value_col: str = "value",

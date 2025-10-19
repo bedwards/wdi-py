@@ -68,7 +68,7 @@ def scatter_with_filter(
         .add_params(brush)
     )
 
-    return chart, brush  
+    return chart, brush
 
 
 def bar_chart_filtered(

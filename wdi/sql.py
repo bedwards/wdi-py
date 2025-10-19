@@ -98,7 +98,7 @@ def get_countries(
                 cur.execute(sql, params)
                 rows = cur.fetchall()
                 columns = [desc[0] for desc in cur.description] if cur.description else []
-            
+
             return pl.DataFrame(rows, schema=columns, orient="row")
 
     finally:
@@ -204,7 +204,7 @@ def get_values(
             rows = cur.fetchall()
             columns = [desc[0] for desc in cur.description] if cur.description else []
 
-        return pl.DataFrame(rows, schema=columns, orient="row")        
+        return pl.DataFrame(rows, schema=columns, orient="row")
 
     finally:
         if close_conn:
