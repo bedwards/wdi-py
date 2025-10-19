@@ -9,7 +9,7 @@
         "venv"
     ],
     "typeCheckingMode": "basic",
-    "pythonVersion": "3.12",
+    "pythonVersion": "3.14",
     "pythonPlatform": "All",
     "reportMissingImports": true,
     "reportMissingTypeStubs": false,
