@@ -1,7 +1,14 @@
 #!/bin/sh
 set -eu
 
-host="studio"
+# Load DB_HOST from .env if it exists, otherwise default to localhost
+if [ -f .env ]; then
+    host=$(grep '^DB_HOST=' .env | cut -d '=' -f 2)
+    host=${host:-localhost}
+else
+    host="localhost"
+fi
+
 commands=""
 
 if [ $# -gt 0 ]; then

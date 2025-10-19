@@ -1,39 +1,56 @@
 """SQL utilities for querying WDI PostgreSQL database."""
 
+import os
+from pathlib import Path
+
 import polars as pl
 import psycopg2
 from psycopg2.extensions import connection as Connection
 
 
+# Load environment variables from .env file if it exists
+def _load_env() -> None:
+    env_file = Path(__file__).parent.parent / ".env"
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_env()
+
+
 def get_connection(
-    host: str = "localhost",
-    port: int = 5432,
-    database: str = "db",
-    user: str = "postgres",
+    host: str | None = None,
+    port: int | None = None,
+    database: str | None = None,
+    user: str | None = None,
     password: str | None = None,
 ) -> Connection:
     """Create a connection to the WDI PostgreSQL database.
 
     Args:
-        host: Database host
-        port: Database port
-        database: Database name
-        user: Database user
-        password: Database password (None uses trust authentication)
+        host: Database host (defaults to DB_HOST env var or 'localhost')
+        port: Database port (defaults to DB_PORT env var or 5432)
+        database: Database name (defaults to DB_NAME env var or 'db')
+        user: Database user (defaults to DB_USER env var or 'postgres')
+        password: Database password (defaults to DB_PASSWORD env var or None)
 
     Returns:
         PostgreSQL connection object
     """
     conn_params = {
-        "host": host,
-        "port": port,  # Changed from str(port) to port
-        "database": database,
-        "user": user,
+        "host": host or os.getenv("DB_HOST", "localhost"),
+        "port": port or int(os.getenv("DB_PORT", "5432")),
+        "database": database or os.getenv("DB_NAME", "db"),
+        "user": user or os.getenv("DB_USER", "postgres"),
     }
-    if password:
-        conn_params["password"] = password
+    if password or os.getenv("DB_PASSWORD"):
+        conn_params["password"] = password or os.getenv("DB_PASSWORD")
 
-    # Type ignore needed due to complex typing of psycopg2.connect
     return psycopg2.connect(**conn_params)  # type: ignore
 
 

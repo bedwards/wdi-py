@@ -12,7 +12,7 @@ echo "✓ Format applied"
 echo
 
 echo "→ Linting with ruff..."
-ruff check .
+ruff check --fix .
 echo "✓ Lint passed"
 echo
 
