@@ -26,14 +26,15 @@ def get_connection(
     """
     conn_params = {
         "host": host,
-        "port": port,
+        "port": str(port),
         "database": database,
         "user": user,
     }
     if password:
         conn_params["password"] = password
 
-    return psycopg2.connect(**conn_params)
+    # Type ignore needed due to complex typing of psycopg2.connect
+    return psycopg2.connect(**conn_params)  # type: ignore
 
 
 def query(sql: str, conn: Connection | None = None) -> pl.DataFrame:
