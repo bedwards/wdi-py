@@ -1,19 +1,16 @@
 """Inequality and Geographic Distribution.
 
 Explore how income inequality (Gini coefficient) varies across regions.
-Click and drag on the scatter plot to select countries and see their
-regional distribution in the bar chart.
+Select countries on the left to see their regional distribution.
 """
 
 import sys
 from pathlib import Path
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import wdi
 
-# Ensure output directory exists
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -33,29 +30,33 @@ df = df.filter(df["value"].is_not_null())
 print(f"Analyzing {len(df)} countries with Gini coefficient data")
 print(f"Years covered: {df['year'].min()} - {df['year'].max()}")
 
-# Create scatter plot: Gini coefficient by country with selection
+# Create scatter plot: Value by country with selection
 scatter, brush = wdi.chart.scatter_with_filter(
     df=df,
     x="value",
     y="country_name",
     color="region",
     tooltip=["country_name", "value", "year", "region", "income_group"],
-    title="Income Inequality by Country (Gini Coefficient)",
-    x_title="Gini Coefficient (higher = more unequal)",
+    title="Income Inequality by Country",
+    subtitle="Gini Coefficient (higher = more unequal)",
+    x_title="Gini Coefficient",
     y_title="Country",
+    x_format="decimal",
     width=500,
     height=600,
 )
 
-# Create bar chart showing regional distribution of selected countries
+# Create bar chart showing regional distribution
 bar = wdi.chart.bar_chart_filtered(
     df=df,
     x="region",
     y="count()",
     color="region",
-    title="Regional Distribution of Selected Countries",
+    title="Regional Distribution",
+    subtitle="Number of selected countries by region",
     x_title="Region",
     y_title="Number of Countries",
+    y_format="integer",
     width=450,
     height=600,
     selection=brush,

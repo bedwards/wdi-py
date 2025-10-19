@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test coverage lint format typecheck clean examples db-up db-down
+.PHONY: help install install-dev test coverage lint format typecheck clean examples examples-all db-up db-down
 
 help:
 	@echo "Available commands:"
@@ -10,7 +10,7 @@ help:
 	@echo "  make format        - Format code"
 	@echo "  make typecheck     - Run type checker"
 	@echo "  make clean         - Remove generated files"
-	@echo "  make examples      - Run all example scripts"
+	@echo "  make examples      - Run example scripts"
 	@echo "  make db-up         - Start PostgreSQL database"
 	@echo "  make db-down       - Stop PostgreSQL database"
 
@@ -45,6 +45,9 @@ clean:
 
 examples:
 	@mkdir -p data/output
+	@echo "Running ALL examples (original + new)..."
+	@echo ""
+	@echo "=== Original Examples ==="
 	python scripts/examples/inequality_geography.py
 	python scripts/examples/development_tradeoffs.py
 	python scripts/examples/wealth_wellbeing.py
@@ -52,7 +55,16 @@ examples:
 	python scripts/examples/education_opportunity.py
 	python scripts/examples/debt_development.py
 	python scripts/examples/healthcare_access.py
-	@echo "Examples generated in data/output/"
+	python scripts/examples/gender_gaps.py
+	@echo ""
+	@echo "=== New Critical Political Economy Examples ==="
+	python scripts/examples/wage_stagnation.py
+	python scripts/examples/imperial_extraction.py
+	python scripts/examples/education_debt.py
+	python scripts/examples/military_healthcare.py
+	python scripts/examples/automation_unemployment.py
+	@echo ""
+	@echo "✓ All examples generated in data/output/"
 
 db-up:
 	docker compose -f db/server.yml up -d

@@ -1,7 +1,137 @@
-"""Altair charting utilities for WDI data visualization."""
+"""Altair charting utilities for WDI data visualization with opinionated design system."""
 
 import altair as alt
 import polars as pl
+
+# =============================================================================
+# THEME CONFIGURATION - Centralized design system
+# =============================================================================
+
+
+class ChartTheme:
+    """Opinionated design theme for WDI visualizations.
+
+    Inspired by modern data journalism and expert designers, this theme
+    provides a distinctive look while maintaining readability and accessibility.
+    """
+
+    # Color palette - Custom, sophisticated colors
+    # Primary colors for categorical data (inspired by Tableau 10 but customized)
+    COLORS = [
+        "#1f77b4",  # Steel blue
+        "#ff7f0e",  # Vibrant orange
+        "#2ca02c",  # Forest green
+        "#d62728",  # Crimson
+        "#9467bd",  # Purple
+        "#8c564b",  # Brown
+        "#e377c2",  # Pink
+        "#7f7f7f",  # Gray
+        "#bcbd22",  # Olive
+        "#17becf",  # Cyan
+    ]
+
+    # Accent colors
+    ACCENT_PRIMARY = "#ff6b6b"  # Coral red
+    ACCENT_SECONDARY = "#4ecdc4"  # Turquoise
+    SELECTION_COLOR = "#2d3748"  # Dark slate
+    DESELECTED_COLOR = "#e2e8f0"  # Light gray
+
+    # Typography
+    FONT_FAMILY = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    TITLE_FONT_SIZE = 16
+    TITLE_FONT_WEIGHT = 600
+    SUBTITLE_FONT_SIZE = 13
+    SUBTITLE_FONT_WEIGHT = 400
+    SUBTITLE_COLOR = "#64748b"
+    LABEL_FONT_SIZE = 11
+
+    # Layout
+    BACKGROUND_COLOR = "#ffffff"
+    GRID_COLOR = "#f1f5f9"
+    AXIS_COLOR = "#cbd5e1"
+    PADDING = 20
+
+    # Chart dimensions (default)
+    WIDTH = 500
+    HEIGHT = 400
+
+    # Point/mark properties
+    POINT_SIZE = 80
+    POINT_OPACITY = 0.75
+    POINT_OPACITY_SELECTED = 0.95
+    LINE_STROKE_WIDTH = 2.5
+    BAR_OPACITY = 0.9
+
+    @classmethod
+    def get_color_scale(cls, domain: list[str] | None = None) -> alt.Scale:
+        """Get color scale with theme colors."""
+        if domain is None:
+            return alt.Scale(range=cls.COLORS)
+        return alt.Scale(range=cls.COLORS, domain=domain)
+
+    @classmethod
+    def get_title_params(cls, title: str, subtitle: str | None = None) -> alt.TitleParams:
+        """Create properly formatted title with optional subtitle.
+
+        Follows notebook pattern: centered title and subtitle with proper spacing.
+        """
+        if subtitle is None:
+            return alt.TitleParams(
+                text=title,
+                anchor="middle",
+                align="center",
+                fontSize=cls.TITLE_FONT_SIZE,
+                fontWeight=cls.TITLE_FONT_WEIGHT,
+                offset=15,
+                orient="top",
+            )
+
+        return alt.TitleParams(
+            text=title,
+            subtitle=subtitle,
+            anchor="middle",
+            align="center",
+            fontSize=cls.TITLE_FONT_SIZE,
+            fontWeight=cls.TITLE_FONT_WEIGHT,
+            subtitleFontSize=cls.SUBTITLE_FONT_SIZE,
+            subtitleFontWeight=cls.SUBTITLE_FONT_WEIGHT,
+            subtitleColor=cls.SUBTITLE_COLOR,
+            subtitlePadding=8,
+            offset=15,
+            orient="top",
+        )
+
+    @classmethod
+    def format_number(cls, value_type: str = "default") -> str:
+        """Get number format string based on value type.
+
+        Args:
+            value_type: Type of value - 'currency', 'percent', 'large', 'decimal', 'default'
+        """
+        formats = {
+            "currency": "$,.2s",  # $1.2M, $345.6k
+            "percent": ".1f",  # 12.3
+            "large": ",.2s",  # 1.2M, 345.6k
+            "decimal": ".2f",  # 12.34
+            "integer": "d",  # 1234
+            "default": ",.0f",  # 1,234
+        }
+        return formats.get(value_type, formats["default"])
+
+    @classmethod
+    def format_axis_year(cls) -> str:
+        """Format year axis - no decimals, no commas."""
+        return "d"
+
+    @classmethod
+    def format_axis_percent(cls, decimals: int = 0) -> str:
+        """Format percent axis with specified decimals."""
+        return f".{decimals}f"
+
+
+# =============================================================================
+# CHART FUNCTIONS
+# =============================================================================
 
 
 def scatter_with_filter(
@@ -11,12 +141,15 @@ def scatter_with_filter(
     color: str | None = None,
     tooltip: list[str] | None = None,
     title: str = "Scatter Plot",
+    subtitle: str | None = None,
     x_title: str | None = None,
     y_title: str | None = None,
+    x_format: str = "default",
+    y_format: str = "default",
     log_x: bool = False,
     log_y: bool = False,
-    width: int = 400,
-    height: int = 400,
+    width: int = ChartTheme.WIDTH,
+    height: int = ChartTheme.HEIGHT,
 ) -> tuple[alt.Chart, alt.Parameter]:
     """Create a scatter plot with interval selection.
 
@@ -27,8 +160,11 @@ def scatter_with_filter(
         color: Color encoding column
         tooltip: List of columns for tooltip
         title: Chart title
+        subtitle: Chart subtitle
         x_title: X-axis title (defaults to column name)
         y_title: Y-axis title (defaults to column name)
+        x_format: Format type for x-axis ('currency', 'percent', 'large', etc.)
+        y_format: Format type for y-axis
         log_x: Use log scale for X-axis
         log_y: Use log scale for Y-axis
         width: Chart width
@@ -46,25 +182,77 @@ def scatter_with_filter(
     if color and color not in base_tooltip:
         base_tooltip.append(color)
 
+    # Build tooltip with proper formatting
+    tooltip_list = []
+    for col in base_tooltip:
+        if df[col].dtype in [pl.Float64, pl.Float32]:
+            # Determine format based on column name hints
+            fmt = ",.2f"
+            if "gdp" in col.lower() or "income" in col.lower() or "capita" in col.lower():
+                fmt = "$,.2s"
+            elif "percent" in col.lower() or "rate" in col.lower():
+                fmt = ".1f"
+            tooltip_list.append(alt.Tooltip(col, format=fmt))
+        else:
+            tooltip_list.append(alt.Tooltip(col))
+
     chart = (
         alt.Chart(df)
-        .mark_circle(size=60, opacity=0.7)
-        .encode(
-            x=alt.X(f"{x}:Q", title=x_title or x, scale=x_scale),
-            y=alt.Y(f"{y}:Q", title=y_title or y, scale=y_scale),
-            color=(
-                alt.condition(brush, f"{color}:N", alt.value("lightgray"))
-                if color
-                else alt.value("steelblue")
-            ),
-            tooltip=[
-                alt.Tooltip(col, format=".2f")
-                if df[col].dtype in [pl.Float64, pl.Float32]
-                else alt.Tooltip(col)
-                for col in base_tooltip
-            ],
+        .mark_point(
+            size=ChartTheme.POINT_SIZE,
+            opacity=ChartTheme.POINT_OPACITY,
+            filled=True,
         )
-        .properties(width=width, height=height, title=title)
+        .encode(
+            x=alt.X(
+                f"{x}:Q",
+                title=x_title or x,
+                scale=x_scale,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(x_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            y=alt.Y(
+                f"{y}:Q",
+                title=y_title or y,
+                scale=y_scale,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(y_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            color=(
+                alt.condition(
+                    brush,
+                    alt.Color(
+                        f"{color}:N",
+                        scale=ChartTheme.get_color_scale(),
+                        legend=alt.Legend(
+                            titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                            labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        ),
+                    ),
+                    alt.value(ChartTheme.DESELECTED_COLOR),
+                )
+                if color
+                else alt.value(ChartTheme.COLORS[0])
+            ),
+            opacity=alt.condition(
+                brush, alt.value(ChartTheme.POINT_OPACITY_SELECTED), alt.value(0.3)
+            ),
+            tooltip=tooltip_list,
+        )
+        .properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
         .add_params(brush)
     )
 
@@ -77,10 +265,12 @@ def bar_chart_filtered(
     y: str,
     color: str | None = None,
     title: str = "Bar Chart",
+    subtitle: str | None = None,
     x_title: str | None = None,
     y_title: str | None = None,
-    width: int = 400,
-    height: int = 400,
+    y_format: str = "default",
+    width: int = 450,
+    height: int = ChartTheme.HEIGHT,
     selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a bar chart that responds to a selection filter.
@@ -91,8 +281,10 @@ def bar_chart_filtered(
         y: Y-axis column name (typically count or aggregation)
         color: Color encoding column
         title: Chart title
+        subtitle: Chart subtitle
         x_title: X-axis title
         y_title: Y-axis title
+        y_format: Format type for y-axis
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
@@ -102,14 +294,54 @@ def bar_chart_filtered(
     """
     chart = (
         alt.Chart(df)
-        .mark_bar()
-        .encode(
-            x=alt.X(f"{x}:N", title=x_title or x),
-            y=alt.Y(f"{y}:Q", title=y_title or y),
-            color=f"{color}:N" if color else alt.value("steelblue"),
-            tooltip=[x, y],
+        .mark_bar(
+            opacity=ChartTheme.BAR_OPACITY,
+            cornerRadiusTopLeft=2,
+            cornerRadiusTopRight=2,
         )
-        .properties(width=width, height=height, title=title)
+        .encode(
+            x=alt.X(
+                f"{x}:N",
+                title=x_title or x,
+                axis=alt.Axis(
+                    labelAngle=-45 if len(df[x].unique()) > 5 else 0,
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                ),
+            ),
+            y=alt.Y(
+                f"{y}:Q",
+                title=y_title or y,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(y_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            color=(
+                alt.Color(
+                    f"{color}:N",
+                    scale=ChartTheme.get_color_scale(),
+                    legend=alt.Legend(
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    ),
+                )
+                if color
+                else alt.value(ChartTheme.COLORS[0])
+            ),
+            tooltip=[
+                alt.Tooltip(x),
+                alt.Tooltip(y, format=ChartTheme.format_number(y_format)),
+            ],
+        )
+        .properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
     )
 
     if selection:
@@ -123,9 +355,11 @@ def histogram_filtered(
     column: str,
     bins: int = 30,
     title: str = "Histogram",
+    subtitle: str | None = None,
     x_title: str | None = None,
-    width: int = 400,
-    height: int = 400,
+    x_format: str = "default",
+    width: int = 450,
+    height: int = ChartTheme.HEIGHT,
     selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a histogram that responds to a selection filter.
@@ -135,7 +369,9 @@ def histogram_filtered(
         column: Column to create histogram for
         bins: Number of bins
         title: Chart title
+        subtitle: Chart subtitle
         x_title: X-axis title
+        x_format: Format type for x-axis
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
@@ -145,13 +381,43 @@ def histogram_filtered(
     """
     chart = (
         alt.Chart(df)
-        .mark_bar()
-        .encode(
-            x=alt.X(f"{column}:Q", bin=alt.Bin(maxbins=bins), title=x_title or column),
-            y=alt.Y("count()", title="Count"),
-            tooltip=["count()"],
+        .mark_bar(
+            opacity=ChartTheme.BAR_OPACITY,
+            cornerRadiusTopLeft=2,
+            cornerRadiusTopRight=2,
+            color=ChartTheme.COLORS[0],
         )
-        .properties(width=width, height=height, title=title)
+        .encode(
+            x=alt.X(
+                f"{column}:Q",
+                bin=alt.Bin(maxbins=bins),
+                title=x_title or column,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(x_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                ),
+            ),
+            y=alt.Y(
+                "count()",
+                title="Count",
+                axis=alt.Axis(
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip(f"{column}:Q", bin=True, format=ChartTheme.format_number(x_format)),
+                alt.Tooltip("count()", title="Count"),
+            ],
+        )
+        .properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
     )
 
     if selection:
@@ -166,10 +432,12 @@ def line_chart_filtered(
     y: str,
     color: str | None = None,
     title: str = "Line Chart",
+    subtitle: str | None = None,
     x_title: str | None = None,
     y_title: str | None = None,
-    width: int = 400,
-    height: int = 400,
+    y_format: str = "default",
+    width: int = 450,
+    height: int = ChartTheme.HEIGHT,
     selection: alt.Parameter | None = None,
 ) -> alt.Chart:
     """Create a line chart that responds to a selection filter.
@@ -180,8 +448,10 @@ def line_chart_filtered(
         y: Y-axis column name
         color: Color encoding column (typically country)
         title: Chart title
+        subtitle: Chart subtitle
         x_title: X-axis title
         y_title: Y-axis title
+        y_format: Format type for y-axis
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
@@ -189,16 +459,64 @@ def line_chart_filtered(
     Returns:
         Altair Chart object
     """
+    # Detect if x is a year column
+    x_axis_format = (
+        ChartTheme.format_axis_year()
+        if "year" in x.lower()
+        else ChartTheme.format_number("default")
+    )
+
     chart = (
         alt.Chart(df)
-        .mark_line()
-        .encode(
-            x=alt.X(f"{x}:Q", title=x_title or x),
-            y=alt.Y(f"{y}:Q", title=y_title or y),
-            color=f"{color}:N" if color else alt.value("steelblue"),
-            tooltip=[x, y] + ([color] if color else []),
+        .mark_line(
+            strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
+            point=alt.OverlayMarkDef(size=40, filled=True),
         )
-        .properties(width=width, height=height, title=title)
+        .encode(
+            x=alt.X(
+                f"{x}:Q",
+                title=x_title or x,
+                axis=alt.Axis(
+                    format=x_axis_format,
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            y=alt.Y(
+                f"{y}:Q",
+                title=y_title or y,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(y_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
+                ),
+            ),
+            color=(
+                alt.Color(
+                    f"{color}:N",
+                    scale=ChartTheme.get_color_scale(),
+                    legend=alt.Legend(
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    ),
+                )
+                if color
+                else alt.value(ChartTheme.COLORS[0])
+            ),
+            tooltip=[
+                alt.Tooltip(x, format=x_axis_format),
+                alt.Tooltip(y, format=ChartTheme.format_number(y_format)),
+            ]
+            + ([alt.Tooltip(color)] if color else []),
+        )
+        .properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
     )
 
     if selection:
@@ -212,6 +530,7 @@ def save_linked_charts(
     chart_right: alt.Chart,
     filename: str,
     overall_title: str | None = None,
+    overall_subtitle: str | None = None,
 ) -> None:
     """Save two horizontally-aligned charts to an HTML file.
 
@@ -220,11 +539,17 @@ def save_linked_charts(
         chart_right: Right chart (typically filtered by selection)
         filename: Output filename (should end in .html)
         overall_title: Optional overall title for the visualization
+        overall_subtitle: Optional overall subtitle
     """
     combined = chart_left | chart_right
 
     if overall_title:
-        combined = combined.properties(title=overall_title)
+        combined = combined.properties(
+            title=ChartTheme.get_title_params(overall_title, overall_subtitle),
+            padding=ChartTheme.PADDING,
+        )
+    else:
+        combined = combined.properties(padding=ChartTheme.PADDING)
 
     combined.save(filename)
 
@@ -234,6 +559,7 @@ def map_chart_filtered(
     country_col: str = "country_code",
     value_col: str = "value",
     title: str = "World Map",
+    subtitle: str | None = None,
     width: int = 600,
     height: int = 400,
     selection: alt.Parameter | None = None,
@@ -245,6 +571,7 @@ def map_chart_filtered(
         country_col: Column containing country codes
         value_col: Column with values to visualize
         title: Chart title
+        subtitle: Chart subtitle
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
@@ -252,25 +579,40 @@ def map_chart_filtered(
     Returns:
         Altair Chart object
     """
-    # Load world map data using the correct API
     from vega_datasets import data as vega_data
 
     world_map = alt.topo_feature(vega_data.world_110m.url, "countries")
 
-    # Convert 3-letter codes to numeric IDs (this is a simplification)
-    # In practice, you'd need a proper mapping
     chart = (
         alt.Chart(world_map)
-        .mark_geoshape()
+        .mark_geoshape(
+            stroke=ChartTheme.AXIS_COLOR,
+            strokeWidth=0.5,
+        )
         .transform_lookup(
             lookup="id",
             from_=alt.LookupData(df, country_col, [value_col]),  # type: ignore[arg-type]
         )
         .encode(
-            color=alt.Color(f"{value_col}:Q", scale=alt.Scale(scheme="viridis")),
-            tooltip=[country_col, value_col],
+            color=alt.Color(
+                f"{value_col}:Q",
+                scale=alt.Scale(scheme="blues"),
+                legend=alt.Legend(
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip(country_col),
+                alt.Tooltip(value_col, format=ChartTheme.format_number("default")),
+            ],
         )
-        .properties(width=width, height=height, title=title)
+        .properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
         .project("naturalEarth1")
     )
 

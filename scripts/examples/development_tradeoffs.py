@@ -2,7 +2,7 @@
 
 Examine the relationship between economic growth (GDP per capita) and
 environmental impact (CO2 emissions per capita). Select countries on the
-scatter plot to see how their emissions have changed over time.
+scatter plot to see their emission distribution.
 """
 
 import sys
@@ -37,8 +37,11 @@ scatter, brush = wdi.chart.scatter_with_filter(
     color="income_group",
     tooltip=["country_name", "x_value", "y_value", "region", "income_group"],
     title="Economic Development vs Carbon Emissions (2019)",
+    subtitle="The environmental cost of prosperity",
     x_title="GDP per Capita (US$, log scale)",
     y_title="CO2 Emissions per Capita (metric tons)",
+    x_format="currency",
+    y_format="decimal",
     log_x=True,
     width=500,
     height=500,
@@ -49,8 +52,10 @@ histogram = wdi.chart.histogram_filtered(
     df=df,
     column="y_value",
     bins=30,
-    title="Distribution of CO2 Emissions (Selected Countries)",
+    title="Distribution of CO2 Emissions",
+    subtitle="Selected countries",
     x_title="CO2 per Capita (metric tons)",
+    x_format="decimal",
     width=450,
     height=500,
     selection=brush,
@@ -62,7 +67,8 @@ wdi.chart.save_linked_charts(
     chart_left=scatter,
     chart_right=histogram,
     filename=str(output_file),
-    overall_title="The Carbon Cost of Development: Select countries to examine emission patterns",
+    overall_title="The Carbon Cost of Development",
+    overall_subtitle="Select countries to examine emission patterns",
 )
 
 print(f"\n✓ Saved: {output_file}")

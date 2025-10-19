@@ -10,7 +10,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-
 import wdi
 
 output_dir = Path("data/output")
@@ -38,8 +37,11 @@ scatter, brush = wdi.chart.scatter_with_filter(
     color="region",
     tooltip=["country_name", "x_value", "y_value", "region", "income_group"],
     title="Health Expenditure vs Infant Mortality (2019)",
+    subtitle="Does spending translate to outcomes?",
     x_title="Health Expenditure per Capita (US$, log scale)",
     y_title="Infant Mortality Rate (per 1,000 births, log scale)",
+    x_format="currency",
+    y_format="decimal",
     log_x=True,
     log_y=True,
     width=500,
@@ -47,7 +49,6 @@ scatter, brush = wdi.chart.scatter_with_filter(
 )
 
 # Get time series for health expenditure of all countries
-# Then filter to selected countries
 ts_df = wdi.df.get_time_series(
     indicator_code="SH.XPD.CHEX.PC.CD",
     country_codes=df["country_code"].to_list(),
@@ -61,9 +62,11 @@ line = wdi.chart.line_chart_filtered(
     x="year",
     y="value",
     color="country_code",
-    title="Health Spending Over Time (Selected Countries)",
+    title="Health Spending Over Time",
+    subtitle="Selected countries (2000-2019)",
     x_title="Year",
     y_title="Health Expenditure per Capita (US$)",
+    y_format="currency",
     width=450,
     height=500,
     selection=brush,
@@ -75,7 +78,8 @@ wdi.chart.save_linked_charts(
     chart_left=scatter,
     chart_right=line,
     filename=str(output_file),
-    overall_title="Healthcare Investment and Outcomes: Select countries to see spending trends",
+    overall_title="Healthcare Investment and Outcomes",
+    overall_subtitle="Select countries to see spending trends over time",
 )
 
 print(f"\n✓ Saved: {output_file}")
