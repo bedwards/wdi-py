@@ -43,6 +43,9 @@ def test_get_connection_default_params() -> None:
     with patch("psycopg2.connect") as mock_connect:
         sql.get_connection()
         mock_connect.assert_called_once_with(
+            None,
+            None,
+            None,
             host="localhost",
             port=5432,
             database="db",
@@ -55,6 +58,9 @@ def test_get_connection_with_password() -> None:
     with patch("psycopg2.connect") as mock_connect:
         sql.get_connection(password="secret")
         mock_connect.assert_called_once_with(
+            None,
+            None,
+            None,
             host="localhost",
             port=5432,
             database="db",

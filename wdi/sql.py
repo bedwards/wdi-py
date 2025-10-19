@@ -44,14 +44,14 @@ def get_connection(
     """
     conn_params = {
         "host": host or os.getenv("DB_HOST", "localhost"),
-        "port": port or int(os.getenv("DB_PORT", "5432")),
+        "port": port or os.getenv("DB_PORT", 5432),
         "database": database or os.getenv("DB_NAME", "db"),
         "user": user or os.getenv("DB_USER", "postgres"),
     }
     if password or os.getenv("DB_PASSWORD"):
-        conn_params["password"] = password or os.getenv("DB_PASSWORD")
+        conn_params["password"] = password or os.getenv("DB_PASSWORD", "")
 
-    return psycopg2.connect(**conn_params)
+    return psycopg2.connect(None, None, None, **conn_params)
 
 
 def query(sql: str, conn: Connection | None = None) -> pl.DataFrame:
