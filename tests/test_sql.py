@@ -1,5 +1,6 @@
 """Tests for wdi.sql module."""
 
+import os
 from unittest.mock import Mock, patch
 
 import polars as pl
@@ -15,6 +16,26 @@ def mock_connection() -> Mock:
     conn.cursor.return_value.__enter__ = Mock(return_value=conn.cursor.return_value)
     conn.cursor.return_value.__exit__ = Mock(return_value=False)
     return conn
+
+
+@pytest.fixture(autouse=True)
+def clean_env():
+    """Clear DB environment variables before each test."""
+    env_vars = ["DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD"]
+    saved = {k: os.environ.get(k) for k in env_vars}
+
+    # Clear all DB env vars
+    for k in env_vars:
+        os.environ.pop(k, None)
+
+    yield
+
+    # Restore
+    for k, v in saved.items():
+        if v is not None:
+            os.environ[k] = v
+        else:
+            os.environ.pop(k, None)
 
 
 def test_get_connection_default_params() -> None:
