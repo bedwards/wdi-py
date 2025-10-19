@@ -95,7 +95,7 @@ chart = (
         height=500,
         title=ChartTheme.get_title_params(
             "Internet Access",
-            "Most recent year (% of population) - Select to see employment trends",
+            "Most recent year (% of population) - Select to see labor force trends",
         ),
     )
 )
@@ -107,18 +107,32 @@ chart = chart.add_params(brush).encode(
 
 bar = chart
 
+ts_indicator_code = "SL.TLF.ACTI.ZS"
+
 # Get employment-to-population ratio time series
 # This shows what % of working-age population is employed
 ts_df = wdi.df.get_time_series(
-    indicator_code="SL.EMP.TOTL.SP.ZS",  # Employment to population ratio (%)
+    indicator_code=ts_indicator_code,  # Labor force participation rate, total (% of total population ages 15-64) (modeled ILO estimate)
     country_codes=countries,
     start_year=1990,
     end_year=2023,
     include_income_group=True,
 )
+ts_df = ts_df.with_columns(
+    (ts_df["value"] / 100).alias("value_pct"),
+)
+
+ts_indicator_name = (
+    next(wdi.sql.get_indicators(search_by_code=ts_indicator_code)[["indicator_name"]].iter_rows())[
+        0
+    ].split(")")[0]
+    + ")"
+)
+
+ts_y_title = ts_indicator_name.split(",")[0].split("(")[0]
+ts_title_prefix = " ".join(ts_y_title.split(" ")[:2])
 
 # Create line chart
-ts_df = ts_df.with_columns((ts_df["value"] / 100).alias("value_pct"))
 line = (
     LineChartFiltered(ts_df)
     .mark_wdi()
@@ -126,10 +140,10 @@ line = (
         x="year",
         y="value_pct",
         color="country_name",
-        title="Employment Rates Over Time",
-        subtitle="Employment-to-population ratio, selected countries (1990-2023)",
+        title=f"{ts_title_prefix} Over Time",
+        subtitle=f"{ts_y_title}, selected countries (1990-2023)",
         x_title="Year",
-        y_title="Employment to Population Ratio (%)",
+        y_title=ts_indicator_name,
         y_format="percent",
         width=600,
         height=500,

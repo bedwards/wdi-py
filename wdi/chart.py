@@ -87,8 +87,8 @@ class ChartTheme:
             )
 
         return alt.TitleParams(
-            text=title,
-            subtitle=subtitle,
+            text=title.capitalize(),
+            subtitle=subtitle.capitalize(),
             anchor="middle",
             align="center",
             fontSize=cls.TITLE_FONT_SIZE,
@@ -135,6 +135,10 @@ class ChartTheme:
 
 
 def to_title(column):
+    if column == "income_group":
+        return "Income"
+    if column == "country_name":
+        return "Country"
     return " ".join(column.split("_")).capitalize()
 
 
@@ -146,16 +150,21 @@ def legend(color):
     )
 
 
-def tooltip(x, y, color, x_axis_format, y_format):
+def tooltip(x, y, color, x_axis_format, y_format, y_title=None):
     result = []
 
     if color:
         result.append(alt.Tooltip(color, title=to_title(color)))
 
+    if y_title is None:
+        y_title = to_title(y)
+
+    y_title = " ".join(y_title.split(" ")[:2])
+
     return result + [
         alt.Tooltip("income_group:N", title="Income"),
         alt.Tooltip(x, format=x_axis_format, title=to_title(x)),
-        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=to_title(y)),
+        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=y_title),
     ]
 
 
@@ -477,7 +486,7 @@ class LineChartFiltered(alt.Chart):
         chart = self.encode(
             x=alt.X(
                 f"{x}:Q",
-                title=x_title or x,
+                title=(x_title or x).capitalize(),
                 axis=alt.Axis(
                     format=x_axis_format,
                     labelFontSize=ChartTheme.LABEL_FONT_SIZE,
@@ -487,7 +496,7 @@ class LineChartFiltered(alt.Chart):
             ),
             y=alt.Y(
                 f"{y}:Q",
-                title=y_title or y,
+                title=(y_title or y).capitalize(),
                 axis=alt.Axis(
                     format=ChartTheme.format_number(y_format),
                     labelFontSize=ChartTheme.LABEL_FONT_SIZE,
@@ -504,7 +513,7 @@ class LineChartFiltered(alt.Chart):
                 if color
                 else alt.value(ChartTheme.COLORS[0])
             ),
-            tooltip=tooltip(x, y, color, x_axis_format, y_format),
+            tooltip=tooltip(x, y, color, x_axis_format, y_format, y_title),
         ).properties(
             width=width,
             height=height,

@@ -132,6 +132,7 @@ def get_countries(
 def get_indicators(
     topic: str | None = None,
     search: str | None = None,
+    search_by_code: str | None = None,
     conn: Connection | None = None,
 ) -> pl.DataFrame:
     """Get indicators, optionally filtered by topic or search term.
@@ -153,6 +154,9 @@ def get_indicators(
     if search:
         sql += " AND LOWER(indicator_name) LIKE LOWER(%s)"
         params.append(f"%{search}%")
+    if search_by_code:
+        sql += " AND indicator_code = %s"
+        params.append(search_by_code)
 
     sql += " ORDER BY indicator_name"
 

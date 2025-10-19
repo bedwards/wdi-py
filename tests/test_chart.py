@@ -57,8 +57,8 @@ def test_chart_theme_title_params() -> None:
     """Test title parameter creation."""
     title_params = chart.ChartTheme.get_title_params("Test Title", "Test Subtitle")
     assert isinstance(title_params, alt.TitleParams)
-    assert title_params.text == "Test Title"
-    assert title_params.subtitle == "Test Subtitle"
+    assert title_params.text == "Test title"
+    assert title_params.subtitle == "Test subtitle"
 
 
 def test_scatter_with_filter_basic(sample_df: pl.DataFrame) -> None:
