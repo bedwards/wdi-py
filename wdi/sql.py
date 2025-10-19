@@ -26,7 +26,7 @@ def get_connection(
     """
     conn_params = {
         "host": host,
-        "port": str(port),
+        "port": port,  # Changed from str(port) to port
         "database": database,
         "user": user,
     }
