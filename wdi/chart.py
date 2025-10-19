@@ -135,6 +135,8 @@ class ChartTheme:
 
 
 def to_title(column):
+    if column is None:
+        return "FIX ME"
     if column == "income_group":
         return "Income"
     if column == "country_name":
@@ -150,7 +152,7 @@ def legend(color):
     )
 
 
-def tooltip(x, y, color, x_axis_format, y_format, y_title=None):
+def create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title):
     result = []
 
     if color:
@@ -161,11 +163,24 @@ def tooltip(x, y, color, x_axis_format, y_format, y_title=None):
 
     y_title = " ".join(y_title.split(" ")[:2])
 
-    return result + [
-        alt.Tooltip("income_group:N", title="Income"),
-        alt.Tooltip(x, format=x_axis_format, title=to_title(x)),
-        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=y_title),
-    ]
+    if y2 is not None:
+        if y2_title is None:
+            y2_title = to_title(y2)
+        y2_title = " ".join(y2_title.split(" ")[:2])
+
+    result.extend(
+        [
+            alt.Tooltip("income_group:N", title="Income"),
+            alt.Tooltip(x, format=x_axis_format, title=to_title(x)),
+            alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=y_title),
+        ]
+    )
+
+    if y2 is not None:
+        # result.append(alt.Tooltip(y2, format=ChartTheme.format_number(y2_format), title=y2_title))
+        result.append(alt.Tooltip("y2_label:N", title=y2_title))
+
+    return result
 
 
 # =============================================================================
@@ -476,6 +491,8 @@ class LineChartFiltered(alt.Chart):
         width: int = 450,
         height: int = ChartTheme.HEIGHT,
         selection: alt.Parameter | None = None,
+        y2: str | None = None,
+        y2_title: str | None = None,
     ) -> alt.Chart:
         x_axis_format = (
             ChartTheme.format_axis_year()
@@ -483,41 +500,47 @@ class LineChartFiltered(alt.Chart):
             else ChartTheme.format_number("default")
         )
 
-        chart = self.encode(
-            x=alt.X(
-                f"{x}:Q",
-                title=(x_title or x).capitalize(),
-                axis=alt.Axis(
-                    format=x_axis_format,
-                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                    gridColor=ChartTheme.GRID_COLOR,
+        chart = (
+            self.transform_calculate(
+                y2_label=f"datum.{y2} == null ? 'Not available' : toString(round(datum.{y2} * 100)) + '%'"
+            )
+            .encode(
+                x=alt.X(
+                    f"{x}:Q",
+                    title=(x_title or x).capitalize(),
+                    axis=alt.Axis(
+                        format=x_axis_format,
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        gridColor=ChartTheme.GRID_COLOR,
+                    ),
                 ),
-            ),
-            y=alt.Y(
-                f"{y}:Q",
-                title=(y_title or y).capitalize(),
-                axis=alt.Axis(
-                    format=ChartTheme.format_number(y_format),
-                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                    gridColor=ChartTheme.GRID_COLOR,
+                y=alt.Y(
+                    f"{y}:Q",
+                    title=(y_title or y).capitalize(),
+                    axis=alt.Axis(
+                        format=ChartTheme.format_number(y_format),
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        gridColor=ChartTheme.GRID_COLOR,
+                    ),
                 ),
-            ),
-            color=(
-                alt.Color(
-                    f"{color}:N",
-                    scale=ChartTheme.get_color_scale(),
-                    legend=legend(color),
-                )
-                if color
-                else alt.value(ChartTheme.COLORS[0])
-            ),
-            tooltip=tooltip(x, y, color, x_axis_format, y_format, y_title),
-        ).properties(
-            width=width,
-            height=height,
-            title=ChartTheme.get_title_params(title, subtitle),
+                color=(
+                    alt.Color(
+                        f"{color}:N",
+                        scale=ChartTheme.get_color_scale(),
+                        legend=legend(color),
+                    )
+                    if color
+                    else alt.value(ChartTheme.COLORS[0])
+                ),
+                tooltip=create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title),
+            )
+            .properties(
+                width=width,
+                height=height,
+                title=ChartTheme.get_title_params(title, subtitle),
+            )
         )
 
         if selection:

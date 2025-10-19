@@ -36,9 +36,13 @@ countries = [
     "CAN",  # Canada
 ]
 
+# Individuals using the Internet (% of population)
+bar_indicator_code = "IT.NET.USER.ZS"
+bar_indicator_name = wdi.sql.get_indicator_name(bar_indicator_code)
+
 # Get internet usage as proxy for technological development
 df_recent = wdi.df.get_indicator_data(
-    indicator_code="IT.NET.USER.ZS",  # Individuals using the Internet (% of population)
+    indicator_code=bar_indicator_code,
     include_region=True,
     include_income_group=True,
 )
@@ -107,12 +111,13 @@ chart = chart.add_params(brush).encode(
 
 bar = chart
 
+# Labor force participation rate, total (% of total population ages 15-64) (modeled ILO estimate)
 ts_indicator_code = "SL.TLF.ACTI.ZS"
 
 # Get employment-to-population ratio time series
 # This shows what % of working-age population is employed
 ts_df = wdi.df.get_time_series(
-    indicator_code=ts_indicator_code,  # Labor force participation rate, total (% of total population ages 15-64) (modeled ILO estimate)
+    indicator_code=[ts_indicator_code, bar_indicator_code],
     country_codes=countries,
     start_year=1990,
     end_year=2023,
@@ -120,14 +125,10 @@ ts_df = wdi.df.get_time_series(
 )
 ts_df = ts_df.with_columns(
     (ts_df["value"] / 100).alias("value_pct"),
+    (ts_df["value_right"] / 100).alias("value_right_pct"),
 )
 
-ts_indicator_name = (
-    next(wdi.sql.get_indicators(search_by_code=ts_indicator_code)[["indicator_name"]].iter_rows())[
-        0
-    ].split(")")[0]
-    + ")"
-)
+ts_indicator_name = wdi.sql.get_indicator_name(ts_indicator_code)
 
 ts_y_title = ts_indicator_name.split(",")[0].split("(")[0]
 ts_title_prefix = " ".join(ts_y_title.split(" ")[:2])
@@ -148,6 +149,8 @@ line = (
         width=600,
         height=500,
         selection=brush,
+        y2="value_right_pct",
+        y2_title="Internet use",
     )
 )
 

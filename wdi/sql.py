@@ -178,6 +178,13 @@ def get_indicators(
             conn.close()
 
 
+def get_indicator_name(code):
+    return (
+        next(get_indicators(search_by_code=code)[["indicator_name"]].iter_rows())[0].split(")")[0]
+        + ")"
+    )
+
+
 def get_values(
     indicator_code: str,
     year: int | None = None,

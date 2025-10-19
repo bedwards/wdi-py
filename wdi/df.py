@@ -113,7 +113,7 @@ def get_indicator_pairs(
 
 
 def get_time_series(
-    indicator_code: str,
+    indicator_code: str | list[str],
     country_codes: list[str],
     start_year: int | None = None,
     end_year: int | None = None,
@@ -131,14 +131,29 @@ def get_time_series(
     Returns:
         DataFrame with year, value for each country
     """
-    df = sql.get_values(
-        indicator_code=indicator_code,
-        start_year=start_year,
-        end_year=end_year,
-    )
+
+    def values(ic):
+        return sql.get_values(
+            indicator_code=ic,
+            start_year=start_year,
+            end_year=end_year,
+        )
+
+    if isinstance(indicator_code, str):
+        indicator_code = [indicator_code]
+
+    df = None
+
+    for ic in indicator_code:
+        temp = values(ic)
+        if df is None:
+            df = temp
+            continue
+        df = df.join(temp, on=["country_code", "year"], how="outer")
+
+    assert isinstance(df, pl.DataFrame)
 
     if include_region or include_income_group:
-        countries = sql.get_countries()
         cols_to_join = ["country_code"]
         if include_region:
             cols_to_join.append("region")
@@ -146,12 +161,18 @@ def get_time_series(
             cols_to_join.append("income_group")
 
         df = df.join(
-            countries.select(cols_to_join),
+            sql.get_countries().select(cols_to_join),
             on="country_code",
             how="left",
         )
 
-    return df.filter(pl.col("country_code").is_in(country_codes))
+    df = df.filter(pl.col("country_code").is_in(country_codes))
+
+    if len(indicator_code) > 1:
+        with pl.Config():
+            print(df)
+
+    return df
 
 
 def pivot_wide(
