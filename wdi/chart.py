@@ -115,7 +115,7 @@ def bar_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart  # type: ignore[return-value]
+    return chart  # type: ignore[no-any-return]
 
 
 def histogram_filtered(
@@ -157,7 +157,7 @@ def histogram_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart  # type: ignore[return-value]
+    return chart  # type: ignore[no-any-return]
 
 
 def line_chart_filtered(
@@ -204,7 +204,7 @@ def line_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart  # type: ignore[return-value]
+    return chart  # type: ignore[no-any-return]
 
 
 def save_linked_charts(
@@ -275,4 +275,4 @@ def map_chart_filtered(
     if selection:
         chart = chart.transform_filter(selection)
 
-    return chart  # type: ignore[return-value]
+    return chart  # type: ignore[no-any-return]

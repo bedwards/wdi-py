@@ -178,14 +178,14 @@ def get_values(
 
     if year is not None:
         sql += " AND year = %s"
-        params.append(year)
+        params.append(str(year))
     else:
         if start_year is not None:
             sql += " AND year >= %s"
-            params.append(start_year)
+            params.append(str(start_year))
         if end_year is not None:
             sql += " AND year <= %s"
-            params.append(end_year)
+            params.append(str(end_year))
 
     if country_code:
         sql += " AND country_code = %s"
