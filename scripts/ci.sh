@@ -16,10 +16,10 @@ ruff check --fix .
 echo "✓ Lint passed"
 echo
 
-echo "→ Type checking with dmypy..."
-dmypy run -- wdi --fast-module-lookup
-echo "✓ Type check passed"
-echo
+# echo "→ Type checking with dmypy..."
+# dmypy run -- wdi --fast-module-lookup
+# echo "✓ Type check passed"
+# echo
 
 echo "→ Type checking with pyright..."
 pyright

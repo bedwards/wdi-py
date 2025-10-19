@@ -1,6 +1,7 @@
 """SQL utilities for querying WDI PostgreSQL database."""
 
 import os
+from decimal import Decimal
 from pathlib import Path
 
 import polars as pl
@@ -21,6 +22,11 @@ def _load_env() -> None:
 
 
 _load_env()
+
+
+def _convert_decimals(rows: list[tuple]) -> list[tuple]:
+    """Convert Decimal values to float for JSON serialization."""
+    return [tuple(float(v) if isinstance(v, Decimal) else v for v in row) for row in rows]
 
 
 def get_connection(
@@ -116,7 +122,7 @@ def get_countries(
                 rows = cur.fetchall()
                 columns = [desc[0] for desc in cur.description] if cur.description else []
 
-            return pl.DataFrame(rows, schema=columns, orient="row")
+            return pl.DataFrame(_convert_decimals(rows), schema=columns, orient="row")
 
     finally:
         if close_conn:
@@ -161,7 +167,7 @@ def get_indicators(
             rows = cur.fetchall()
             columns = [desc[0] for desc in cur.description] if cur.description else []
 
-        return pl.DataFrame(rows, schema=columns, orient="row")
+        return pl.DataFrame(_convert_decimals(rows), schema=columns, orient="row")
 
     finally:
         if close_conn:
@@ -221,7 +227,7 @@ def get_values(
             rows = cur.fetchall()
             columns = [desc[0] for desc in cur.description] if cur.description else []
 
-        return pl.DataFrame(rows, schema=columns, orient="row")
+        return pl.DataFrame(_convert_decimals(rows), schema=columns, orient="row")
 
     finally:
         if close_conn:
