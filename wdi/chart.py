@@ -7,6 +7,7 @@ import polars as pl
 # THEME CONFIGURATION - Centralized design system
 # =============================================================================
 
+
 class ChartTheme:
     """Opinionated design theme for WDI visualizations.
 
@@ -132,8 +133,9 @@ class ChartTheme:
 # SHARED PROPERTIES
 # =============================================================================
 
+
 def to_title(column):
-    return ' '.join(column.split('_')).capitalize()
+    return " ".join(column.split("_")).capitalize()
 
 
 def legend(color):
@@ -153,13 +155,14 @@ def tooltip(x, y, color, x_axis_format, y_format):
     return result + [
         alt.Tooltip("income_group:N", title="Income"),
         alt.Tooltip(x, format=x_axis_format, title=to_title(x)),
-        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=to_title(y))
+        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=to_title(y)),
     ]
 
 
 # =============================================================================
 # CHART FUNCTIONS
 # =============================================================================
+
 
 def scatter_with_filter(
     df: pl.DataFrame,
@@ -446,14 +449,13 @@ def histogram_filtered(
 
 class LineChartFiltered(alt.Chart):
     def mark_wdi(self):
-        return (self
-            .mark_line(
-                strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
-                point=alt.OverlayMarkDef(size=40, filled=True),
-            )
+        return self.mark_line(
+            strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
+            point=alt.OverlayMarkDef(size=40, filled=True),
         )
 
-    def encode_wdi(self,
+    def encode_wdi(
+        self,
         x: str,
         y: str,
         color: str | None = None,
@@ -472,44 +474,41 @@ class LineChartFiltered(alt.Chart):
             else ChartTheme.format_number("default")
         )
 
-        chart = (self    
-            .encode(
-                x=alt.X(
-                    f"{x}:Q",
-                    title=x_title or x,
-                    axis=alt.Axis(
-                        format=x_axis_format,
-                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                        gridColor=ChartTheme.GRID_COLOR,
-                    ),
+        chart = self.encode(
+            x=alt.X(
+                f"{x}:Q",
+                title=x_title or x,
+                axis=alt.Axis(
+                    format=x_axis_format,
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
                 ),
-                y=alt.Y(
-                    f"{y}:Q",
-                    title=y_title or y,
-                    axis=alt.Axis(
-                        format=ChartTheme.format_number(y_format),
-                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
-                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
-                        gridColor=ChartTheme.GRID_COLOR,
-                    ),
+            ),
+            y=alt.Y(
+                f"{y}:Q",
+                title=y_title or y,
+                axis=alt.Axis(
+                    format=ChartTheme.format_number(y_format),
+                    labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                    titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    gridColor=ChartTheme.GRID_COLOR,
                 ),
-                color=(
-                    alt.Color(
-                        f"{color}:N",
-                        scale=ChartTheme.get_color_scale(),
-                        legend=legend(color),
-                    )
-                    if color
-                    else alt.value(ChartTheme.COLORS[0])
-                ),
-                tooltip=tooltip(x, y, color, x_axis_format, y_format),
-            )
-            .properties(
-                width=width,
-                height=height,
-                title=ChartTheme.get_title_params(title, subtitle),
-            )
+            ),
+            color=(
+                alt.Color(
+                    f"{color}:N",
+                    scale=ChartTheme.get_color_scale(),
+                    legend=legend(color),
+                )
+                if color
+                else alt.value(ChartTheme.COLORS[0])
+            ),
+            tooltip=tooltip(x, y, color, x_axis_format, y_format),
+        ).properties(
+            width=width,
+            height=height,
+            title=ChartTheme.get_title_params(title, subtitle),
         )
 
         if selection:
@@ -551,7 +550,8 @@ def line_chart_filtered(
     Returns:
         Altair Chart object
     """
-    return (LineChartFiltered(df)
+    return (
+        LineChartFiltered(df)
         .mark_wdi()
         .encode_wdi(
             x,

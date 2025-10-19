@@ -11,13 +11,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import polars as pl
+
 import wdi
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 year = 2023
-indicator_y = 'EN.GHG.CO2.PC.CE.AR5'
+indicator_y = "EN.GHG.CO2.PC.CE.AR5"
 
 co2_indicators = wdi.sql.get_indicators(search="CO2")
 with pl.Config(tbl_rows=999, tbl_width_chars=9999, fmt_str_lengths=200):

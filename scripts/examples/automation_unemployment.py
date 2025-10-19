@@ -58,9 +58,7 @@ chart = (
         cornerRadiusTopLeft=2,
         cornerRadiusTopRight=2,
     )
-    .transform_calculate(
-        value_pct='datum.value / 100'
-    )
+    .transform_calculate(value_pct="datum.value / 100")
     .encode(
         x=alt.X(
             "value_pct:Q",
@@ -121,7 +119,8 @@ ts_df = wdi.df.get_time_series(
 
 # Create line chart
 ts_df = ts_df.with_columns((ts_df["value"] / 100).alias("value_pct"))
-line = (LineChartFiltered(ts_df)
+line = (
+    LineChartFiltered(ts_df)
     .mark_wdi()
     .encode_wdi(
         x="year",

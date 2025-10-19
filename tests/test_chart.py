@@ -48,7 +48,7 @@ def test_chart_theme_colors() -> None:
 def test_chart_theme_formats() -> None:
     """Test number formatting."""
     assert chart.ChartTheme.format_number("currency") == "$,.2s"
-    assert chart.ChartTheme.format_number("percent") == ".1f"
+    assert chart.ChartTheme.format_number("percent") == ".0%"
     assert chart.ChartTheme.format_axis_year() == "d"
     assert "f" in chart.ChartTheme.format_axis_percent(1)
 
