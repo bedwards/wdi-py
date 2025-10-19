@@ -251,7 +251,6 @@ def scatter_with_filter(
             width=width,
             height=height,
             title=ChartTheme.get_title_params(title, subtitle),
-            background=ChartTheme.BACKGROUND_COLOR,
         )
         .add_params(brush)
     )
@@ -340,7 +339,6 @@ def bar_chart_filtered(
             width=width,
             height=height,
             title=ChartTheme.get_title_params(title, subtitle),
-            background=ChartTheme.BACKGROUND_COLOR,
         )
     )
 
@@ -416,7 +414,6 @@ def histogram_filtered(
             width=width,
             height=height,
             title=ChartTheme.get_title_params(title, subtitle),
-            background=ChartTheme.BACKGROUND_COLOR,
         )
     )
 
@@ -515,7 +512,6 @@ def line_chart_filtered(
             width=width,
             height=height,
             title=ChartTheme.get_title_params(title, subtitle),
-            background=ChartTheme.BACKGROUND_COLOR,
         )
     )
 
@@ -543,13 +539,18 @@ def save_linked_charts(
     """
     combined = chart_left | chart_right
 
+    # Apply background and other properties to the combined chart
     if overall_title:
         combined = combined.properties(
             title=ChartTheme.get_title_params(overall_title, overall_subtitle),
             padding=ChartTheme.PADDING,
+            background=ChartTheme.BACKGROUND_COLOR,
         )
     else:
-        combined = combined.properties(padding=ChartTheme.PADDING)
+        combined = combined.properties(
+            padding=ChartTheme.PADDING,
+            background=ChartTheme.BACKGROUND_COLOR,
+        )
 
     combined.save(filename)
 
@@ -611,7 +612,6 @@ def map_chart_filtered(
             width=width,
             height=height,
             title=ChartTheme.get_title_params(title, subtitle),
-            background=ChartTheme.BACKGROUND_COLOR,
         )
         .project("naturalEarth1")
     )
