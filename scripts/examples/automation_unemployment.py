@@ -116,12 +116,13 @@ ts_df = wdi.df.get_time_series(
     country_codes=countries,
     start_year=1990,
     end_year=2023,
+    include_income_group=True,
 )
 
 # Create line chart
+ts_df = ts_df.with_columns((ts_df["value"] / 100).alias("value_pct"))
 line = (LineChartFiltered(ts_df)
     .mark_wdi()
-    .transform_calculate(value_pct='datum.value / 100')
     .encode_wdi(
         x="year",
         y="value_pct",

@@ -117,6 +117,8 @@ def get_time_series(
     country_codes: list[str],
     start_year: int | None = None,
     end_year: int | None = None,
+    include_region: bool = False,
+    include_income_group: bool = False,
 ) -> pl.DataFrame:
     """Get time series data for multiple countries.
 
@@ -134,6 +136,20 @@ def get_time_series(
         start_year=start_year,
         end_year=end_year,
     )
+
+    if include_region or include_income_group:
+        countries = sql.get_countries()
+        cols_to_join = ["country_code"]
+        if include_region:
+            cols_to_join.append("region")
+        if include_income_group:
+            cols_to_join.append("income_group")
+
+        df = df.join(
+            countries.select(cols_to_join),
+            on="country_code",
+            how="left",
+        )
 
     return df.filter(pl.col("country_code").is_in(country_codes))
 

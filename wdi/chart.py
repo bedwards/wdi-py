@@ -133,15 +133,8 @@ class ChartTheme:
 # =============================================================================
 
 def to_title(column):
-    if column == 'income_group':
-        return 'Income'
-    if column == 'region':
-        return 'Region'
-    if column == 'country_code':
-        return 'Country code'
-    if column == 'country_name':
-        return 'Country'
-    return column
+    return ' '.join(column.split('_')).capitalize()
+
 
 def legend(color):
     return alt.Legend(
@@ -149,6 +142,19 @@ def legend(color):
         labelFontSize=ChartTheme.LABEL_FONT_SIZE,
         title=to_title(color),
     )
+
+
+def tooltip(x, y, color, x_axis_format, y_format):
+    result = []
+
+    if color:
+        result.append(alt.Tooltip(color, title=to_title(color)))
+
+    return result + [
+        alt.Tooltip("income_group:N", title="Income"),
+        alt.Tooltip(x, format=x_axis_format, title=to_title(x)),
+        alt.Tooltip(y, format=ChartTheme.format_number(y_format), title=to_title(y))
+    ]
 
 
 # =============================================================================
@@ -497,11 +503,7 @@ class LineChartFiltered(alt.Chart):
                     if color
                     else alt.value(ChartTheme.COLORS[0])
                 ),
-                tooltip=[
-                    alt.Tooltip(x, format=x_axis_format),
-                    alt.Tooltip(y, format=ChartTheme.format_number(y_format)),
-                ]
-                + ([alt.Tooltip(color)] if color else []),
+                tooltip=tooltip(x, y, color, x_axis_format, y_format),
             )
             .properties(
                 width=width,
