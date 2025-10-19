@@ -227,6 +227,20 @@ def get_values(
             rows = cur.fetchall()
             columns = [desc[0] for desc in cur.description] if cur.description else []
 
+        # Return empty DataFrame with correct schema if no rows
+        if not rows:
+            return pl.DataFrame(
+                schema={
+                    "id": pl.Int64,
+                    "country_code": pl.Utf8,
+                    "country_name": pl.Utf8,
+                    "indicator_code": pl.Utf8,
+                    "indicator_name": pl.Utf8,
+                    "year": pl.Int64,
+                    "value": pl.Float64,
+                }
+            )
+
         return pl.DataFrame(_convert_decimals(rows), schema=columns, orient="row")
 
     finally:

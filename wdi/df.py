@@ -50,6 +50,9 @@ def get_indicator_data(
     return df
 
 
+# In wdi/df.py, replace the get_indicator_pairs function (around line 62-96):
+
+
 def get_indicator_pairs(
     indicator_x: str,
     indicator_y: str,
@@ -73,9 +76,19 @@ def get_indicator_pairs(
     df_x = sql.get_values(indicator_code=indicator_x, year=year)
     df_y = sql.get_values(indicator_code=indicator_y, year=year)
 
+    # DEBUG: Print schemas
+    # print(f"df_x schema: {df_x.schema}")
+    # print(f"df_x head:\n{df_x.head()}")
+    # print(f"\ndf_y schema: {df_y.schema}")
+    # print(f"df_y head:\n{df_y.head()}")
+
+    # Select only the columns we need from df_y to avoid conflicts
+    # Keep country_code, country_name for joining, and value
+    df_y_subset = df_y.select(["country_code", "value"])
+
     # Join on country_code
     df = df_x.join(
-        df_y.select(["country_code", "value"]),
+        df_y_subset,
         on="country_code",
         how="inner",
         suffix="_y",
