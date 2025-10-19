@@ -45,9 +45,8 @@ clean:
 
 examples:
 	@mkdir -p data/output
-	@echo "Running ALL examples (original + new)..."
+	@echo "Running examples..."
 	@echo ""
-	@echo "=== Original Examples ==="
 	python scripts/examples/inequality_geography.py
 	python scripts/examples/development_tradeoffs.py
 	python scripts/examples/wealth_wellbeing.py
@@ -56,8 +55,6 @@ examples:
 	python scripts/examples/debt_development.py
 	python scripts/examples/healthcare_access.py
 	python scripts/examples/gender_gaps.py
-	@echo ""
-	@echo "=== New Critical Political Economy Examples ==="
 	python scripts/examples/wage_stagnation.py
 	python scripts/examples/imperial_extraction.py
 	python scripts/examples/education_debt.py

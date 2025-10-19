@@ -10,7 +10,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+import altair as alt
+
 import wdi
+from wdi.chart import ChartTheme
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -48,21 +51,61 @@ df_recent = df_recent.filter(df_recent["value"].is_not_null())
 print(f"Analyzing {len(df_recent)} countries' military spending")
 print(f"Most recent year: {df_recent['year'].max()}")
 
-# Create bar chart
-bar, brush = wdi.chart.scatter_with_filter(
-    df=df_recent,
-    x="country_name",
-    y="value",
-    color="country_code",
-    tooltip=["country_name", "value", "year"],
-    title="Military Spending",
-    subtitle="Most recent year (% of GDP) - Select to see trends",
-    x_title="Country",
-    y_title="Military Expenditure (% of GDP)",
-    y_format="decimal",
-    width=550,
-    height=500,
+# Around line 55-65, replace:
+
+chart = (
+    alt.Chart(df_recent)
+    .mark_bar(
+        opacity=ChartTheme.BAR_OPACITY,
+        cornerRadiusTopLeft=2,
+        cornerRadiusTopRight=2,
+    )
+    .encode(
+        y=alt.Y(
+            "country_name:N",
+            title="Country",
+            sort=alt.EncodingSortField(field="value", order="descending"),
+            axis=alt.Axis(
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+            ),
+        ),
+        x=alt.X(
+            "value:Q",
+            title="Military Expenditure (% of GDP)",
+            axis=alt.Axis(
+                format=ChartTheme.format_number("decimal"),
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                gridColor=ChartTheme.GRID_COLOR,
+            ),
+        ),
+        color=alt.Color(
+            "country_code:N",
+            scale=ChartTheme.get_color_scale(),
+            legend=None,
+        ),
+        tooltip=[
+            alt.Tooltip("country_name:N"),
+            alt.Tooltip("value:Q", format=".2f"),
+            alt.Tooltip("year:Q", format="d"),
+        ],
+    )
+    .properties(
+        width=550,
+        height=500,
+        title=ChartTheme.get_title_params(
+            "Military Spending", "Most recent year (% of GDP) - Select to see trends"
+        ),
+    )
 )
+
+brush = alt.selection_point(fields=["country_code"], name="brush")
+chart = chart.add_params(brush).encode(
+    opacity=alt.condition(brush, alt.value(ChartTheme.BAR_OPACITY), alt.value(0.3))
+)
+
+bar = chart
 
 # Get time series since 1990 (post-Cold War)
 ts_df = wdi.df.get_time_series(

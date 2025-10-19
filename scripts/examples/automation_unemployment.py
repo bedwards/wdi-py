@@ -10,7 +10,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+import altair as alt
+
 import wdi
+from wdi.chart import ChartTheme
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -48,20 +51,64 @@ print(f"Analyzing {len(df_recent)} countries' internet access")
 print(f"Most recent year: {df_recent['year'].max()}")
 
 # Create bar chart
-bar, brush = wdi.chart.scatter_with_filter(
-    df=df_recent,
-    x="country_name",
-    y="value",
-    color="income_group",
-    tooltip=["country_name", "value", "year", "income_group"],
-    title="Internet Access",
-    subtitle="Most recent year (% of population) - Select to see employment trends",
-    x_title="Country",
-    y_title="Internet Users (% of population)",
-    y_format="decimal",
-    width=550,
-    height=500,
+chart = (
+    alt.Chart(df_recent)
+    .mark_bar(
+        opacity=ChartTheme.BAR_OPACITY,
+        cornerRadiusTopLeft=2,
+        cornerRadiusTopRight=2,
+    )
+    .encode(
+        y=alt.Y(
+            "country_name:N",
+            title="Country",
+            sort=alt.EncodingSortField(field="value", order="descending"),
+            axis=alt.Axis(
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+            ),
+        ),
+        x=alt.X(
+            "value:Q",
+            title="Internet Users (% of population)",
+            axis=alt.Axis(
+                format=ChartTheme.format_number("decimal"),
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                gridColor=ChartTheme.GRID_COLOR,
+            ),
+        ),
+        color=alt.Color(
+            "income_group:N",
+            scale=ChartTheme.get_color_scale(),
+            legend=alt.Legend(
+                titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+            ),
+        ),
+        tooltip=[
+            alt.Tooltip("country_name:N"),
+            alt.Tooltip("value:Q", format=".1f"),
+            alt.Tooltip("year:Q", format="d"),
+            alt.Tooltip("income_group:N"),
+        ],
+    )
+    .properties(
+        width=550,
+        height=500,
+        title=ChartTheme.get_title_params(
+            "Internet Access",
+            "Most recent year (% of population) - Select to see employment trends",
+        ),
+    )
 )
+
+brush = alt.selection_point(fields=["country_code"], name="brush")
+chart = chart.add_params(brush).encode(
+    opacity=alt.condition(brush, alt.value(ChartTheme.BAR_OPACITY), alt.value(0.3))
+)
+
+bar = chart
 
 # Get employment-to-population ratio time series
 # This shows what % of working-age population is employed
