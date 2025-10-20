@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import altair as alt
 
 import wdi
-from wdi.chart import ChartTheme, LineChartFiltered
+from wdi.chart import ChartTheme
 
 output_dir = Path("data/output")
 output_dir.mkdir(parents=True, exist_ok=True)
@@ -133,25 +133,23 @@ ts_indicator_name = wdi.sql.get_indicator_name(ts_indicator_code)
 ts_y_title = ts_indicator_name.split(",")[0].split("(")[0]
 ts_title_prefix = " ".join(ts_y_title.split(" ")[:2])
 
-# Create line chart
-line = (
-    LineChartFiltered(ts_df)
-    .mark_wdi()
-    .encode_wdi(
-        x="year",
-        y="value_pct",
-        color="country_name",
-        title=f"{ts_title_prefix} Over Time",
-        subtitle=f"{ts_y_title}, selected countries (1990-2023)",
-        x_title="Year",
-        y_title=ts_indicator_name,
-        y_format="percent",
-        width=600,
-        height=500,
-        selection=brush,
-        y2="value_right_pct",
-        y2_title="Internet use",
-    )
+# Create line chart with area for internet adoption
+line = wdi.chart.line_chart_filtered(
+    df=ts_df,
+    x="year",
+    y="value_pct",
+    color="country_name",
+    title=f"{ts_title_prefix} Over Time",
+    subtitle=f"{ts_y_title}, selected countries (1990-2023)",
+    x_title="Year",
+    y_title=ts_indicator_name,
+    y_format="percent",
+    width=600,
+    height=500,
+    selection=brush,
+    y2="value_right_pct",
+    y2_title="Internet Use",
+    y2_as_area=True,
 )
 
 # Save linked charts

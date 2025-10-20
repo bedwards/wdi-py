@@ -176,10 +176,10 @@ def legend(color: str) -> alt.Legend:
 def create_tooltip(
     x: str,
     y: str,
-    color: str,
+    color: str | None,
     x_axis_format: str,
     y_format: str,
-    y_title: str,
+    y_title: str | None,
     y2: str | None = None,
     y2_title: str | None = None,
 ) -> list[alt.Tooltip]:
@@ -538,6 +538,7 @@ class LineChartFiltered(alt.Chart):
         selection: alt.Parameter | None = None,
         y2: str | None = None,
         y2_title: str | None = None,
+        y2_as_area: bool = False,
     ) -> alt.Chart:
         x_axis_format = (
             ChartTheme.format_axis_year()
@@ -545,11 +546,58 @@ class LineChartFiltered(alt.Chart):
             else ChartTheme.format_number("default")
         )
 
-        chart = (
-            self.transform_calculate(
+        if y2 is not None and y2_as_area:
+            # Create dual-axis chart with area for y2
+            base = self.transform_calculate(
                 y2_label=f"datum.{y2} == null ? 'Not available' : toString(round(datum.{y2} * 100)) + '%'"
+            ).properties(
+                width=width,
+                height=height,
+                title=ChartTheme.get_title_params(title, subtitle),
             )
-            .encode(
+
+            # Area chart for y2 (right axis)
+            area = base.mark_area(
+                opacity=0.09,
+                # line=True,
+                interpolate="monotone",
+                color=ChartTheme.GRID_COLOR,
+            ).encode(
+                x=alt.X(
+                    f"{x}:Q",
+                    axis=alt.Axis(
+                        format=x_axis_format,
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                    ),
+                ),
+                y=alt.Y(
+                    f"{y2}:Q",
+                    title="",
+                    axis=alt.Axis(
+                        format=ChartTheme.format_number(y_format),
+                        labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                        titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                        # orient="right",
+                    ),
+                    stack=None,
+                ),
+                color=alt.Color(
+                    f"{color}:N",
+                    scale=ChartTheme.get_color_scale(),
+                    legend=None,
+                )
+                if color
+                else alt.value(ChartTheme.COLORS[0]),
+                # detail=alt.Detail(f"{color}:N") if color else alt.value(None),
+            )
+
+            # Line chart for y (left axis)
+            line = base.mark_line(
+                strokeWidth=ChartTheme.LINE_STROKE_WIDTH,
+                interpolate="monotone",
+                point=alt.OverlayMarkDef(),
+            ).encode(
                 x=alt.X(
                     f"{x}:Q",
                     title=(x_title or x).capitalize(),
@@ -579,23 +627,73 @@ class LineChartFiltered(alt.Chart):
                     if color
                     else alt.value(ChartTheme.COLORS[0])
                 ),
-            )
-            .properties(
-                width=width,
-                height=height,
-                title=ChartTheme.get_title_params(title, subtitle),
-            )
-        )
-
-        if y is not None and color is not None and y_title is not None:
-            chart = chart.encode(
-                tooltip=create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title)
+                tooltip=create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title),
             )
 
-        if selection:
-            chart = chart.transform_filter(selection)
+            chart = line + area  # .resolve_scale(y='independent')
 
-        return chart  # type: ignore[no-any-return]
+            if selection:
+                chart = chart.transform_filter(selection)
+
+            return chart  # type: ignore[no-any-return]
+
+        else:
+            # single-axis logic
+            chart = (
+                self.transform_calculate(
+                    y2_label=f"datum.{y2} == null ? 'Not available' : toString(round(datum.{y2} * 100)) + '%'"
+                    if y2
+                    else "''"
+                )
+                .encode(
+                    x=alt.X(
+                        f"{x}:Q",
+                        title=(x_title or x).capitalize(),
+                        axis=alt.Axis(
+                            format=x_axis_format,
+                            labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                            titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                            gridColor=ChartTheme.GRID_COLOR,
+                        ),
+                    ),
+                    y=alt.Y(
+                        f"{y}:Q",
+                        title=(y_title or y).capitalize(),
+                        axis=alt.Axis(
+                            format=ChartTheme.format_number(y_format),
+                            labelFontSize=ChartTheme.LABEL_FONT_SIZE,
+                            titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
+                            gridColor=ChartTheme.GRID_COLOR,
+                        ),
+                    ),
+                    color=(
+                        alt.Color(
+                            f"{color}:N",
+                            scale=ChartTheme.get_color_scale(),
+                            legend=legend(color),
+                        )
+                        if color
+                        else alt.value(ChartTheme.COLORS[0])
+                    ),
+                )
+                .properties(
+                    width=width,
+                    height=height,
+                    title=ChartTheme.get_title_params(title, subtitle),
+                )
+            )
+
+            if y is not None and color is not None and y_title is not None:
+                chart = chart.encode(
+                    tooltip=create_tooltip(
+                        x, y, color, x_axis_format, y_format, y_title, y2, y2_title
+                    )
+                )
+
+            if selection:
+                chart = chart.transform_filter(selection)
+
+            return chart  # type: ignore[no-any-return]
 
 
 def line_chart_filtered(
@@ -611,6 +709,9 @@ def line_chart_filtered(
     width: int = 450,
     height: int = ChartTheme.HEIGHT,
     selection: alt.Parameter | None = None,
+    y2: str | None = None,
+    y2_title: str | None = None,
+    y2_as_area: bool = False,
 ) -> alt.Chart:
     """Create a line chart that responds to a selection filter.
 
@@ -627,6 +728,9 @@ def line_chart_filtered(
         width: Chart width
         height: Chart height
         selection: Selection from another chart to filter by
+        y2: Optional second y-axis column name
+        y2_title: Optional second y-axis title
+        y2_as_area: If True, render y2 as translucent area on right axis
 
     Returns:
         Altair Chart object
@@ -646,6 +750,9 @@ def line_chart_filtered(
             width,
             height,
             selection,
+            y2,
+            y2_title,
+            y2_as_area,
         )
     )
 

@@ -76,7 +76,7 @@ def test_scatter_with_filter_basic(sample_df: pl.DataFrame) -> None:
 
 def test_scatter_with_filter_with_subtitle(sample_df: pl.DataFrame) -> None:
     """Test scatter plot with subtitle."""
-    chart_obj, brush = chart.scatter_with_filter(
+    chart_obj, _ = chart.scatter_with_filter(
         df=sample_df,
         x="x_value",
         y="y_value",
@@ -89,7 +89,7 @@ def test_scatter_with_filter_with_subtitle(sample_df: pl.DataFrame) -> None:
 
 def test_scatter_with_filter_with_color(sample_df: pl.DataFrame) -> None:
     """Test scatter plot with color encoding."""
-    chart_obj, brush = chart.scatter_with_filter(
+    chart_obj, _ = chart.scatter_with_filter(
         df=sample_df,
         x="x_value",
         y="y_value",
@@ -102,7 +102,7 @@ def test_scatter_with_filter_with_color(sample_df: pl.DataFrame) -> None:
 
 def test_scatter_with_filter_log_scales(sample_df: pl.DataFrame) -> None:
     """Test scatter plot with logarithmic scales."""
-    chart_obj, brush = chart.scatter_with_filter(
+    chart_obj, _ = chart.scatter_with_filter(
         df=sample_df,
         x="x_value",
         y="y_value",
@@ -115,7 +115,7 @@ def test_scatter_with_filter_log_scales(sample_df: pl.DataFrame) -> None:
 
 def test_scatter_with_filter_custom_formats(sample_df: pl.DataFrame) -> None:
     """Test scatter plot with custom formatting."""
-    chart_obj, brush = chart.scatter_with_filter(
+    chart_obj, _ = chart.scatter_with_filter(
         df=sample_df,
         x="x_value",
         y="y_value",
