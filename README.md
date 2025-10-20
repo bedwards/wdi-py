@@ -7,6 +7,8 @@
 
 A Python toolkit for analyzing World Bank Development Indicators (WDI) data with interactive visualizations. Query a PostgreSQL database of WDI data, manipulate it with Polars, and create linked interactive charts with Altair.
 
+[Live examples](https://bedwards.github.io/wdi-py/index.html)
+
 ## Features
 
 - **SQL Module** (`wdi.sql`): Type-safe queries against PostgreSQL WDI database
