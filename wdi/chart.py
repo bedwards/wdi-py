@@ -28,6 +28,11 @@ class ChartTheme:
         "#7f7f7f",  # Gray
         "#bcbd22",  # Olive
         "#17becf",  # Cyan
+        "#393b79",  # Deep blue
+        "#e7ba52",  # Gold
+        "#5254a3",  # Dark purple
+        "#8c6d31",  # Dark olive
+        "#d95f0e",  # Dark orange
     ]
 
     # Accent colors
