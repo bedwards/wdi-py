@@ -134,9 +134,17 @@ class ChartTheme:
 # =============================================================================
 
 
-def to_title(column):
-    if column is None:
-        return "FIX ME"
+def to_title(column: str) -> str:
+    """Convert a column name to a human-readable title.
+
+    Replaces underscores with spaces and capitalizes each word.
+
+    Args:
+        column (str): The column name to convert.
+
+    Returns:
+        str: A human-readable title.
+    """
     if column == "income_group":
         return "Income"
     if column == "country_name":
@@ -144,7 +152,15 @@ def to_title(column):
     return " ".join(column.split("_")).capitalize()
 
 
-def legend(color):
+def legend(color: str) -> alt.Legend:
+    """Create a legend configuration with theme-appropriate styling.
+
+    Args:
+        color: Color scale or color string to base the legend on.
+
+    Returns:
+        alt.Legend: Configured legend object.
+    """
     return alt.Legend(
         titleFontSize=ChartTheme.LABEL_FONT_SIZE + 1,
         labelFontSize=ChartTheme.LABEL_FONT_SIZE,
@@ -152,7 +168,31 @@ def legend(color):
     )
 
 
-def create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title):
+def create_tooltip(
+    x: str,
+    y: str,
+    color: str,
+    x_axis_format: str,
+    y_format: str,
+    y_title: str,
+    y2: str | None = None,
+    y2_title: str | None = None,
+) -> list[alt.Tooltip]:
+    """Create a tooltip configuration for an Altair chart.
+
+    Args:
+        x: X-axis field for the tooltip.
+        y: Y-axis field for the tooltip.
+        color: Color field for the tooltip.
+        x_axis_format: Format string for the x-axis values.
+        y_format: Format string for the y-axis values.
+        y_title: Title for the y-axis tooltip.
+        y2: Optional second y-axis field for the tooltip.
+        y2_title: Optional title for the second y-axis tooltip.
+
+    Returns:
+        alt.Tooltip: Configured tooltip object.
+    """
     result = []
 
     if color:
@@ -534,7 +574,6 @@ class LineChartFiltered(alt.Chart):
                     if color
                     else alt.value(ChartTheme.COLORS[0])
                 ),
-                tooltip=create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title),
             )
             .properties(
                 width=width,
@@ -542,6 +581,11 @@ class LineChartFiltered(alt.Chart):
                 title=ChartTheme.get_title_params(title, subtitle),
             )
         )
+
+        if y is not None and color is not None and y_title is not None:
+            chart = chart.encode(
+                tooltip=create_tooltip(x, y, color, x_axis_format, y_format, y_title, y2, y2_title)
+            )
 
         if selection:
             chart = chart.transform_filter(selection)
