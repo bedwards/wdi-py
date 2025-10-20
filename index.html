@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>wdi-py</title>
+    <meta name="description"
+        content="A high-performance Polars-based data layer for World Bank Development Indicators, optimized for Altair visualizations." />
+    <style>
+        :root {
+            --w: 960px;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            color: #222;
+            background: #fafafa;
+            line-height: 1.6;
+        }
+
+        header,
+        main {
+            max-width: var(--w);
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        h1 {
+            margin: 0 0 0.75rem 0;
+            font-weight: 550;
+            font-size: 1.75rem;
+        }
+
+        p.lede {
+            margin: 0 0 1.5rem 0;
+        }
+
+        .frame {
+            width: 100%;
+            height: 640px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, .08);
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>wdi-py</h1>
+        <p class="lede">A high-performance Polars-based data layer for World Bank Development Indicators, optimized for
+            Altair visualizations.</p>
+    </header>
+
+    <main>
+        <iframe class="frame" src="automation_unemployment.html" loading="eager"
+            title="Automation &amp; Unemployment Visualization"></iframe>
+    </main>
+</body>
+
+</html>
